@@ -1,0 +1,33 @@
+# Build outputs
+dist/
+/pluginctl
+
+# Test outputs
+coverage.out
+coverage.html
+
+# Go build cache
+.cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Log files
+*.log
+
+# Local environment files
+.env
+.env.local
+.claude

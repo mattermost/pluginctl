@@ -1,0 +1,373 @@
+# .golangci.yml
+# golangci-lint configuration for pluginctl
+
+# Options for analysis running
+run:
+  # Timeout for analysis
+  timeout: 5m
+  # Exit code when at least one issue was found
+  issues-exit-code: 1
+  # Include test files
+  tests: true
+  # Go version to target
+  go: "1.24"
+
+# Output configuration
+output:
+  # Format of output
+  formats:
+    - format: colored-line-number
+  # Print lines of code with issue
+  print-issued-lines: true
+  # Print linter name in the end of issue text
+  print-linter-name: true
+  # Sort results by: filepath, line and column
+  sort-results: true
+
+# Linters configuration
+linters:
+  # Disable all linters by default
+  disable-all: true
+  # Enable specific linters
+  enable:
+    # Enabled by default
+    - errcheck        # Check for unchecked errors
+    - gosimple        # Simplify code
+    - govet           # Examine Go source code and reports suspicious constructs
+    - ineffassign     # Detect ineffectual assignments
+    - staticcheck     # Advanced Go linter
+    - unused          # Check for unused constants, variables, functions and types
+    
+    # Additional linters
+    - asciicheck      # Check for non-ASCII characters
+    - bodyclose       # Check HTTP response body is closed
+    - contextcheck    # Check context.Context is propagated
+    - cyclop          # Check cyclomatic complexity
+    - dupl            # Check for duplicate code
+    - durationcheck   # Check for two durations multiplied together
+    - errorlint       # Check for error wrapping
+    - exhaustive      # Check exhaustiveness of enum switch statements
+    - copyloopvar     # Check for pointers to enclosing loop variables
+    - forcetypeassert # Find forced type assertions
+    - funlen          # Check function length
+    - gci             # Control Go package import order
+    - gocognit        # Check cognitive complexity
+    - goconst         # Find repeated strings that could be constants
+    - gocritic        # Various checks
+    - gocyclo         # Check cyclomatic complexity
+    - godot           # Check if comments end in a period
+    - gofmt           # Check if the code was gofmt-ed
+    - goimports       # Check if imports are sorted
+    - mnd             # Check for magic numbers
+    - gomoddirectives # Check for //go:build directives
+    - gomodguard      # Check for blocked module dependencies
+    - goprintffuncname # Check printf-like function names
+    - gosec           # Security checker
+    - lll             # Check line length
+    - makezero        # Find slice declarations that are not initialized with zero length
+    - misspell        # Find commonly misspelled English words
+    - nakedret        # Check for naked returns
+    - nilerr          # Check for nil errors
+    - nlreturn        # Check for new line before return
+    - noctx           # Check for HTTP requests without context
+    - prealloc        # Find slice declarations that could be preallocated
+    - predeclared     # Check for predeclared identifiers
+    - revive          # Fast, configurable, extensible linter
+    - rowserrcheck    # Check SQL rows.Err
+    - sqlclosecheck   # Check SQL Close() calls
+    - stylecheck      # Stylecheck is a replacement for golint
+    - thelper         # Check test helpers
+    - tparallel       # Check test parallelization
+    - unconvert       # Check for unnecessary type conversions
+    - unparam         # Check for unused function parameters
+    - wastedassign    # Check for wasted assignment statements
+    - whitespace      # Check for unnecessary whitespace
+
+# Linters settings
+linters-settings:
+  # Settings for cyclop
+  cyclop:
+    max-complexity: 15
+    package-average: 0.0
+    skip-tests: true
+
+  # Settings for dupl
+  dupl:
+    threshold: 100
+
+  # Settings for errorlint
+  errorlint:
+    errorf: true
+    asserts: true
+    comparison: true
+
+  # Settings for exhaustive
+  exhaustive:
+    check-generated: false
+    default-signifies-exhaustive: false
+
+  # Settings for funlen
+  funlen:
+    lines: 100
+    statements: 50
+
+  # Settings for gci
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/mattermost/pluginctl)
+      - blank
+      - dot
+
+  # Settings for gocognit
+  gocognit:
+    min-complexity: 15
+
+  # Settings for goconst
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+
+  # Settings for gocritic
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+
+  # Settings for gocyclo
+  gocyclo:
+    min-complexity: 15
+
+  # Settings for godot
+  godot:
+    scope: declarations
+    capital: false
+
+  # Settings for gofmt
+  gofmt:
+    simplify: true
+
+  # Settings for goimports
+  goimports:
+    local-prefixes: github.com/mattermost/pluginctl
+
+  # Settings for mnd
+  mnd:
+    checks: argument,case,condition,operation,return,assign
+    ignored-numbers: 0,1,2,3
+    ignored-functions: strings.SplitN
+
+  # Settings for govet
+  govet:
+    enable:
+      - shadow
+    settings:
+      printf:
+        funcs:
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+
+  # Settings for lll
+  lll:
+    line-length: 120
+
+  # Settings for misspell
+  misspell:
+    locale: US
+
+  # Settings for nakedret
+  nakedret:
+    max-func-lines: 30
+
+  # Settings for prealloc
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: false
+
+  # Settings for revive
+  revive:
+    min-confidence: 0
+    rules:
+      - name: atomic
+      - name: line-length-limit
+        arguments: [120]
+      - name: argument-limit
+        arguments: [4]
+      - name: cyclomatic
+        arguments: [15]
+      - name: max-public-structs
+        arguments: [3]
+      - name: file-header
+        disabled: true
+
+  # Settings for staticcheck
+  staticcheck:
+    checks: ["all"]
+
+  # Settings for stylecheck
+  stylecheck:
+    checks: ["all", "-ST1000", "-ST1003", "-ST1016", "-ST1020", "-ST1021", "-ST1022"]
+    dot-import-whitelist:
+      - fmt
+    initialisms: ["ACL", "API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "QPS", "RAM", "RPC", "SLA", "SMTP", "SQL", "SSH", "TCP", "TLS", "TTL", "UDP", "UI", "GID", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XMPP", "XSRF", "XSS"]
+    http-status-code-whitelist: ["200", "400", "404", "500"]
+
+  # Settings for unparam
+  unparam:
+    check-exported: false
+
+# Issues configuration
+issues:
+  # List of regexps of issue texts to exclude
+  exclude:
+    # Exclude some linters from running on tests files
+    - "G104:"  # Errors unhandled (gosec)
+    - "G204:"  # Subprocess launched with variable (gosec)
+    - "G304:"  # File path provided as taint input (gosec)
+    
+  # Skip files
+  exclude-files:
+    - ".*_test.go"
+    - ".*\\.pb\\.go"
+  
+  # Skip directories
+  exclude-dirs:
+    - vendor
+    - node_modules
+    - .git
+    
+  # Make issues output unique by line
+  uniq-by-line: true
+    
+  # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - mnd
+        - goconst
+        - funlen
+        - lll
+        - dupl
+        - gosec
+        - gocritic
+        - cyclop
+        - gocognit
+        - gocyclo
+        - maintidx
+        - bodyclose
+        - noctx
+        - rowserrcheck
+        - sqlclosecheck
+        - tparallel
+        - unparam
+        - wastedassign
+        - prealloc
+        - nlreturn
+        - wsl
+        - gofumpt
+        - whitespace
+        - errorlint
+        - contextcheck
+        - thelper
+        - forcetypeassert
+        - copyloopvar
+        - paralleltest
+        - godot
+        - godox
+        - gomodguard
+        - goprintffuncname
+        - nakedret
+        - nestif
+        - nilerr
+        - nlreturn
+        - noctx
+        - predeclared
+        - revive
+        - stylecheck
+        - tagliatelle
+        - unconvert
+        - wrapcheck
+        - wsl
+        - asciicheck
+        - bidichk
+        - durationcheck
+        - exhaustive
+        - forbidigo
+        - gci
+        - gochecknoglobals
+        - gochecknoinits
+        - godox
+        - goheader
+        - golint
+        - mnd
+        - gomoddirectives
+        - gomodguard
+        - goprintffuncname
+        - ifshort
+        - importas
+        - interfacer
+        - ireturn
+        - maligned
+        - makezero
+        - misspell
+        - nlreturn
+        - nolintlint
+        - paralleltest
+        - prealloc
+        - promlinter
+        - revive
+        - rowserrcheck
+        - scopelint
+        - sqlclosecheck
+        - stylecheck
+        - tagliatelle
+        - testpackage
+        - thelper
+        - tparallel
+        - unconvert
+        - unparam
+        - varcheck
+        - wastedassign
+        - whitespace
+        - wrapcheck
+        - wsl
+
+    # Exclude lll issues for long lines with go:generate
+    - linters:
+        - lll
+      source: "^//go:generate "
+
+  # Independently of option `exclude` we use default exclude patterns
+  exclude-use-default: false
+
+  # Maximum issues count per one linter
+  max-issues-per-linter: 0
+
+  # Maximum count of issues with the same text
+  max-same-issues: 0
+
+  # Show only new issues
+  new: false
+
+  # Show only new issues created after git revision
+  new-from-rev: ""
+
+  # Show only new issues created in git patch with set file path
+  new-from-patch: ""
+
+  # Fix found issues (if it's supported by the linter)
+  fix: false

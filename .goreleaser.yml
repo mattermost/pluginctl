@@ -1,0 +1,129 @@
+# .goreleaser.yml
+# GoReleaser configuration for pluginctl
+version: 2
+
+# Project information
+project_name: pluginctl
+
+# Before hooks
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+# Build configuration
+builds:
+  - id: pluginctl
+    binary: pluginctl
+    main: ./cmd/pluginctl
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+      - "386"
+    goarm:
+      - "6"
+      - "7"
+    ignore:
+      - goos: windows
+        goarch: "386"
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+    flags:
+      - -trimpath
+
+# Archive configuration
+archives:
+  - id: pluginctl
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+
+# Checksums
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+# Snapshot configuration
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+# Changelog configuration
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^build:"
+      - "^style:"
+      - "^refactor:"
+      - "^chore:"
+      - "merge conflict"
+      - "Merge pull request"
+      - "Merge remote-tracking branch"
+      - "Merge branch"
+  groups:
+    - title: "New Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug Fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: "Documentation"
+      regexp: "^.*docs[(\\w)]*:+.*$"
+      order: 2
+    - title: "Other Changes"
+      order: 999
+
+# Release configuration
+release:
+  github:
+    owner: mattermost
+    name: pluginctl
+  draft: false
+  prerelease: auto
+  name_template: "v{{ .Version }}"
+  header: |
+    ## pluginctl {{ .Version }}
+
+    Welcome to this new release of pluginctl! 🎉
+
+    ### What's new
+  footer: |
+    ## Installation
+
+    ### Binary Installation
+    Download the appropriate binary for your platform from the assets below.
+
+    ### Package Managers
+    ```bash
+    # Using go install
+    go install github.com/mattermost/pluginctl/cmd/pluginctl@{{ .Tag }}
+    ```
+
+    ### From Source
+    ```bash
+    git clone https://github.com/mattermost/pluginctl.git
+    cd pluginctl
+    make install
+    ```
+
+    **Full Changelog**: https://github.com/mattermost/pluginctl/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+# Announce configuration (optional)
+announce:
+  slack:
+    enabled: false
+  discord:
+    enabled: false

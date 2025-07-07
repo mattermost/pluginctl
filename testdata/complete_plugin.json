@@ -1,0 +1,37 @@
+{
+    "id": "com.example.complete",
+    "name": "Complete Test Plugin",
+    "description": "A complete plugin with all features for testing",
+    "version": "2.1.0",
+    "min_server_version": "7.0.0",
+    "server": {
+        "executables": {
+            "linux-amd64": "server/dist/plugin-linux-amd64",
+            "darwin-amd64": "server/dist/plugin-darwin-amd64", 
+            "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+        }
+    },
+    "webapp": {
+        "bundle_path": "webapp/dist/main.js"
+    },
+    "settings_schema": {
+        "header": "Complete Plugin Settings",
+        "footer": "Configure all settings for the complete plugin",
+        "settings": [
+            {
+                "key": "enable_feature",
+                "display_name": "Enable Main Feature",
+                "type": "bool",
+                "help_text": "Enable or disable the main plugin feature",
+                "default": true
+            },
+            {
+                "key": "api_endpoint",
+                "display_name": "API Endpoint",
+                "type": "text",
+                "help_text": "The API endpoint URL",
+                "default": "https://api.example.com"
+            }
+        ]
+    }
+}

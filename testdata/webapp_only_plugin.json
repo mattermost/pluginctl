@@ -1,0 +1,9 @@
+{
+    "id": "com.example.webapponly", 
+    "name": "Webapp Only Plugin",
+    "description": "A plugin with only client-side code",
+    "version": "0.9.0",
+    "webapp": {
+        "bundle_path": "webapp/dist/bundle.js"
+    }
+}
