@@ -22,8 +22,10 @@ pluginctl/
 
 #### 1. **Separation of Concerns**
 - **CLI Framework**: `cmd/pluginctl/main.go` handles argument parsing, command routing, and error handling
-- **Command Implementation**: Each command gets its own file (e.g., `info.go`, `build.go`, `deploy.go`)
+- **Command Implementation**: Each command gets its own file (e.g., `info.go`, `build.go`, `deploy.go`) **IN THE ROOT FOLDER, NOT IN cmd/pluginctl/**
 - **Utility Functions**: Common plugin operations in `plugin.go`
+
+**CRITICAL ARCHITECTURE RULE**: ALL COMMAND LOGIC MUST BE IN SEPARATE FILES IN THE ROOT FOLDER. The cmd/pluginctl/main.go file should ONLY contain CLI framework code (argument parsing, command routing, wrapper functions). Never put command implementation logic directly in main.go.
 
 #### 2. **Plugin Manifest Handling**
 - **Always use official Mattermost types**: Import `github.com/mattermost/mattermost/server/public/model` and use `model.Manifest`
@@ -31,9 +33,11 @@ pluginctl/
 - **Path handling**: Support both current directory and custom path operations
 
 #### 3. **Command Structure**
-- **Main command router**: Add new commands to the `runCommand()` function in `main.go`
-- **Command functions**: Name pattern: `run[Command]Command(args []string) error`
+- **Main command router**: Add new commands to the `runCommand()` function in `cmd/pluginctl/main.go`
+- **Command functions**: Name pattern: `run[Command]Command(args []string, pluginPath string) error`
 - **Error handling**: Return descriptive errors, let main.go handle exit codes
+- **Command implementation**: Each command's logic goes in a separate file in the root folder (e.g., `enable.go`, `disable.go`, `reset.go`)
+- **Command wrapper functions**: The main.go file contains simple wrapper functions that call the actual command implementations
 
 #### 4. **Code Organization**
 - **No inline implementations**: Keep command logic in separate files

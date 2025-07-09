@@ -1,4 +1,4 @@
-package main
+package pluginctl
 
 import (
 	"fmt"
@@ -7,14 +7,14 @@ import (
 
 // RunVersionCommand implements the 'version' command functionality.
 func RunVersionCommand(args []string) error {
-	version := getVersion()
+	version := GetVersion()
 	fmt.Printf("pluginctl version %s\n", version)
 
 	return nil
 }
 
-// getVersion returns the version information from build info.
-func getVersion() string {
+// GetVersion returns the version information from build info.
+func GetVersion() string {
 	info, ok := debug.ReadBuildInfo()
 	if !ok {
 		return "unknown"
@@ -29,9 +29,11 @@ func getVersion() string {
 	for _, setting := range info.Settings {
 		if setting.Key == "vcs.revision" {
 			// Return short commit hash if no version tag
-			if len(setting.Value) >= 7 {
-				return setting.Value[:7]
+			const shortHashLength = 7
+			if len(setting.Value) >= shortHashLength {
+				return setting.Value[:shortHashLength]
 			}
+
 			return setting.Value
 		}
 	}
