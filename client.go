@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"time"
@@ -22,14 +21,13 @@ func getClient(ctx context.Context) (*model.Client4, error) {
 
 	client, connected := getUnixClient(socketPath)
 	if connected {
-		log.Printf("Connecting using local mode over %s", socketPath)
+		Logger.Info("Connecting using local mode", "socket_path", socketPath)
 
 		return client, nil
 	}
 
 	if os.Getenv("MM_LOCALSOCKETPATH") != "" {
-		log.Printf("No socket found at %s for local mode deployment. "+
-			"Attempting to authenticate with credentials.", socketPath)
+		Logger.Info("No socket found for local mode deployment. Attempting to authenticate with credentials.", "socket_path", socketPath)
 	}
 
 	siteURL := os.Getenv("MM_SERVICESETTINGS_SITEURL")
@@ -44,7 +42,7 @@ func getClient(ctx context.Context) (*model.Client4, error) {
 	client = model.NewAPIv4Client(siteURL)
 
 	if adminToken != "" {
-		log.Printf("Authenticating using token against %s.", siteURL)
+		Logger.Info("Authenticating using token", "site_url", siteURL)
 		client.SetToken(adminToken)
 
 		return client, nil
@@ -52,7 +50,7 @@ func getClient(ctx context.Context) (*model.Client4, error) {
 
 	if adminUsername != "" && adminPassword != "" {
 		client := model.NewAPIv4Client(siteURL)
-		log.Printf("Authenticating as %s against %s.", adminUsername, siteURL)
+		Logger.Info("Authenticating with credentials", "username", adminUsername, "site_url", siteURL)
 		_, _, err := client.Login(ctx, adminUsername, adminPassword)
 		if err != nil {
 			return nil, fmt.Errorf("failed to login as %s: %w", adminUsername, err)

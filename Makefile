@@ -136,7 +136,7 @@ verify: clean lint test build ## Verify build (clean, lint, test, build)
 
 # Quick development build
 .PHONY: dev
-dev: fmt lint build ## Quick development build (fmt, lint, build)
+dev: fmt lint snapshot ## Quick development build (fmt, lint, build)
 
 # Check changes target
 .PHONY: check-changes

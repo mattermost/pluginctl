@@ -19,63 +19,58 @@ func InfoCommand() error {
 
 // PrintPluginInfo displays formatted plugin information.
 func PrintPluginInfo(manifest *model.Manifest) error {
-	fmt.Printf("Plugin Information:\n")
-	fmt.Printf("==================\n\n")
+	Logger.Info("Plugin Information:")
+	Logger.Info("==================")
 
 	// Basic plugin info
-	fmt.Printf("ID:              %s\n", manifest.Id)
-	fmt.Printf("Name:            %s\n", manifest.Name)
-	fmt.Printf("Version:         %s\n", manifest.Version)
+	Logger.Info("ID:", "value", manifest.Id)
+	Logger.Info("Name:", "value", manifest.Name)
+	Logger.Info("Version:", "value", manifest.Version)
 
 	// Minimum Mattermost version
 	if manifest.MinServerVersion != "" {
-		fmt.Printf("Min MM Version:  %s\n", manifest.MinServerVersion)
+		Logger.Info("Min MM Version:", "value", manifest.MinServerVersion)
 	} else {
-		fmt.Printf("Min MM Version:  Not specified\n")
+		Logger.Info("Min MM Version:", "value", "Not specified")
 	}
 
 	// Description if available
 	if manifest.Description != "" {
-		fmt.Printf("Description:     %s\n", manifest.Description)
+		Logger.Info("Description:", "value", manifest.Description)
 	}
 
-	fmt.Printf("\nCode Components:\n")
-	fmt.Printf("================\n")
+	Logger.Info("Code Components:")
+	Logger.Info("================")
 
 	// Server code presence
 	if HasServerCode(manifest) {
-		fmt.Printf("Server Code:     Yes\n")
+		Logger.Info("Server Code:", "value", "Yes")
 		if manifest.Server != nil && len(manifest.Server.Executables) > 0 {
-			fmt.Printf("  Executables:   ")
-			first := true
+			var executables []string
 			for platform := range manifest.Server.Executables {
-				if !first {
-					fmt.Printf(", ")
-				}
-				fmt.Printf("%s", platform)
-				first = false
+				executables = append(executables, platform)
 			}
-			fmt.Printf("\n")
+			Logger.Info("Executables:", "platforms", executables)
 		}
 	} else {
-		fmt.Printf("Server Code:     No\n")
+		Logger.Info("Server Code:", "value", "No")
 	}
 
 	// Webapp code presence
 	if HasWebappCode(manifest) {
-		fmt.Printf("Webapp Code:     Yes\n")
+		Logger.Info("Webapp Code:", "value", "Yes")
 		if manifest.Webapp != nil && manifest.Webapp.BundlePath != "" {
-			fmt.Printf("  Bundle Path:   %s\n", manifest.Webapp.BundlePath)
+			Logger.Info("Bundle Path:", "value", manifest.Webapp.BundlePath)
 		}
 	} else {
-		fmt.Printf("Webapp Code:     No\n")
+		Logger.Info("Webapp Code:", "value", "No")
 	}
 
 	// Settings schema
 	if manifest.SettingsSchema != nil {
-		fmt.Printf("Settings Schema: Yes\n")
+		Logger.Info("Settings Schema:", "value", "Yes")
 	} else {
-		fmt.Printf("Settings Schema: No\n")
+		Logger.Info("Settings Schema:", "value", "No")
 	}
 
 	return nil

@@ -18,7 +18,7 @@ func RunUpdateAssetsCommand(args []string, pluginPath string) error {
 		return fmt.Errorf("updateassets command does not accept arguments")
 	}
 
-	fmt.Printf("Updating assets in plugin directory: %s\n", pluginPath)
+	Logger.Info("Updating assets in plugin directory", "path", pluginPath)
 
 	// Load plugin manifest to check for webapp code
 	manifest, err := LoadPluginManifestFromPath(pluginPath)
@@ -82,7 +82,7 @@ func RunUpdateAssetsCommand(args []string, pluginPath string) error {
 			if err := os.WriteFile(targetPath, content, 0644); err != nil {
 				return fmt.Errorf("failed to write file %s: %w", targetPath, err)
 			}
-			fmt.Printf("Updated file: %s\n", relativePath)
+			Logger.Info("Updated file", "path", relativePath)
 			updatedCount++
 		}
 
@@ -93,6 +93,6 @@ func RunUpdateAssetsCommand(args []string, pluginPath string) error {
 		return fmt.Errorf("failed to update assets: %w", err)
 	}
 
-	fmt.Printf("Assets updated successfully! (%d files updated)\n", updatedCount)
+	Logger.Info("Assets updated successfully!", "files_updated", updatedCount)
 	return nil
 }

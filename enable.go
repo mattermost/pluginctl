@@ -3,7 +3,6 @@ package pluginctl
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -13,7 +12,7 @@ func RunEnableCommand(args []string, pluginPath string) error {
 }
 
 func enablePlugin(ctx context.Context, client *model.Client4, pluginID string) error {
-	log.Print("Enabling plugin.")
+	Logger.Info("Enabling plugin")
 	_, err := client.EnablePlugin(ctx, pluginID)
 	if err != nil {
 		return fmt.Errorf("failed to enable plugin: %w", err)

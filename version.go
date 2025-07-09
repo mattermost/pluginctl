@@ -1,14 +1,13 @@
 package pluginctl
 
 import (
-	"fmt"
 	"runtime/debug"
 )
 
 // RunVersionCommand implements the 'version' command functionality.
 func RunVersionCommand(args []string) error {
 	version := GetVersion()
-	fmt.Printf("pluginctl version %s\n", version)
+	Logger.Info("pluginctl version", "version", version)
 
 	return nil
 }

@@ -15,6 +15,9 @@ const (
 )
 
 func main() {
+	// Initialize logger
+	pluginctl.InitLogger()
+
 	var pluginPath string
 
 	flag.StringVar(&pluginPath, "plugin-path", "", "Path to plugin directory (overrides PLUGINCTL_PLUGIN_PATH)")
@@ -22,7 +25,7 @@ func main() {
 
 	args := flag.Args()
 	if len(args) == 0 {
-		fmt.Fprintf(os.Stderr, "Error: No command specified\n\n")
+		pluginctl.Logger.Error("No command specified")
 		showUsage()
 		os.Exit(ExitError)
 	}
@@ -34,7 +37,7 @@ func main() {
 	effectivePluginPath := pluginctl.GetEffectivePluginPath(pluginPath)
 
 	if err := runCommand(command, commandArgs, effectivePluginPath); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		pluginctl.Logger.Error("Command failed", "error", err)
 		os.Exit(ExitError)
 	}
 }
@@ -68,7 +71,7 @@ func runInfoCommand(args []string, pluginPath string) error {
 
 func runVersionCommand(_ []string) error {
 	version := pluginctl.GetVersion()
-	fmt.Printf("pluginctl version %s\n", version)
+	pluginctl.Logger.Info("pluginctl version", "version", version)
 
 	return nil
 }
@@ -89,7 +92,7 @@ func runUpdateAssetsCommand(args []string, pluginPath string) error {
 }
 
 func showUsage() {
-	fmt.Printf(`pluginctl - Mattermost Plugin Development CLI
+	usageText := `pluginctl - Mattermost Plugin Development CLI
 
 Usage:
   pluginctl [global options] <command> [command options] [arguments...]
@@ -127,5 +130,6 @@ Environment Variables:
 
 For more information about Mattermost plugin development, visit:
 https://developers.mattermost.com/integrate/plugins/
-`)
+`
+	pluginctl.Logger.Info(usageText)
 }
