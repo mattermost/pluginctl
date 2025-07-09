@@ -50,3 +50,9 @@
 - Use structured logging with key-value pairs
 - Follow existing naming conventions
 - Keep command files self-contained and testable
+
+### Documentation
+
+- **CRITICAL**: Keep README.md updated when adding new commands or changing functionality
+- README.md should be user-facing - focus on usage, not implementation details
+- Use `pluginctl --help` for command documentation, not hardcoded lists in README
