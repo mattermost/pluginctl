@@ -49,6 +49,8 @@ func runCommand(command string, args []string, pluginPath string) error {
 		return runDisableCommand(args, pluginPath)
 	case "reset":
 		return runResetCommand(args, pluginPath)
+	case "updateassets":
+		return runUpdateAssetsCommand(args, pluginPath)
 	case "help":
 		showUsage()
 
@@ -82,6 +84,10 @@ func runResetCommand(args []string, pluginPath string) error {
 	return pluginctl.RunResetCommand(args, pluginPath)
 }
 
+func runUpdateAssetsCommand(args []string, pluginPath string) error {
+	return pluginctl.RunUpdateAssetsCommand(args, pluginPath)
+}
+
 func showUsage() {
 	fmt.Printf(`pluginctl - Mattermost Plugin Development CLI
 
@@ -96,6 +102,7 @@ Commands:
   enable         Enable plugin from current directory in Mattermost server
   disable        Disable plugin from current directory in Mattermost server
   reset          Reset plugin from current directory (disable then enable)
+  updateassets   Update plugin files from embedded assets
   help           Show this help message
   version        Show version information
 
@@ -105,6 +112,7 @@ Examples:
   pluginctl enable                           # Enable plugin from current directory
   pluginctl disable                          # Disable plugin from current directory
   pluginctl reset                            # Reset plugin from current directory (disable then enable)
+  pluginctl updateassets                     # Update plugin files from embedded assets
   export PLUGINCTL_PLUGIN_PATH=/path/to/plugin
   pluginctl info                              # Show info using environment variable
   pluginctl version                           # Show version information
