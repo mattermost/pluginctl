@@ -402,3 +402,207 @@ func TestHasServerCodeAndWebappCode(t *testing.T) {
 		})
 	}
 }
+
+func TestParsePluginCtlConfig(t *testing.T) {
+	tests := []struct {
+		name           string
+		manifest       *model.Manifest
+		expectedConfig *PluginCtlConfig
+		expectError    bool
+		errorContains  string
+	}{
+		{
+			name: "Manifest with valid pluginctl config",
+			manifest: &model.Manifest{
+				Props: map[string]interface{}{
+					"pluginctl": map[string]interface{}{
+						"ignore_assets": []string{"*.test.js", "build/", "temp/**"},
+					},
+				},
+			},
+			expectedConfig: &PluginCtlConfig{
+				IgnoreAssets: []string{"*.test.js", "build/", "temp/**"},
+			},
+			expectError: false,
+		},
+		{
+			name: "Manifest with no props",
+			manifest: &model.Manifest{
+				Props: nil,
+			},
+			expectedConfig: &PluginCtlConfig{
+				IgnoreAssets: []string{},
+			},
+			expectError: false,
+		},
+		{
+			name: "Manifest with empty props",
+			manifest: &model.Manifest{
+				Props: map[string]interface{}{},
+			},
+			expectedConfig: &PluginCtlConfig{
+				IgnoreAssets: []string{},
+			},
+			expectError: false,
+		},
+		{
+			name: "Manifest with no pluginctl config",
+			manifest: &model.Manifest{
+				Props: map[string]interface{}{
+					"other": "value",
+				},
+			},
+			expectedConfig: &PluginCtlConfig{
+				IgnoreAssets: []string{},
+			},
+			expectError: false,
+		},
+		{
+			name: "Manifest with empty pluginctl config",
+			manifest: &model.Manifest{
+				Props: map[string]interface{}{
+					"pluginctl": map[string]interface{}{},
+				},
+			},
+			expectedConfig: &PluginCtlConfig{
+				IgnoreAssets: []string{},
+			},
+			expectError: false,
+		},
+		{
+			name: "Manifest with invalid pluginctl config",
+			manifest: &model.Manifest{
+				Props: map[string]interface{}{
+					"pluginctl": "invalid",
+				},
+			},
+			expectedConfig: nil,
+			expectError:    true,
+			errorContains:  "failed to parse pluginctl config",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config, err := ParsePluginCtlConfig(tt.manifest)
+
+			if tt.expectError {
+				if err == nil {
+					t.Error("Expected error but got nil")
+				} else if tt.errorContains != "" && !strings.Contains(err.Error(), tt.errorContains) {
+					t.Errorf("Expected error to contain %q but got: %v", tt.errorContains, err)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				return
+			}
+
+			if config == nil {
+				t.Error("Expected config but got nil")
+				return
+			}
+
+			if len(config.IgnoreAssets) != len(tt.expectedConfig.IgnoreAssets) {
+				t.Errorf("Expected %d ignore assets but got %d", len(tt.expectedConfig.IgnoreAssets), len(config.IgnoreAssets))
+				return
+			}
+
+			for i, expected := range tt.expectedConfig.IgnoreAssets {
+				if config.IgnoreAssets[i] != expected {
+					t.Errorf("Expected ignore asset %d to be %q but got %q", i, expected, config.IgnoreAssets[i])
+				}
+			}
+		})
+	}
+}
+
+func TestIsPathIgnored(t *testing.T) {
+	tests := []struct {
+		name           string
+		relativePath   string
+		ignorePatterns []string
+		expectedIgnore bool
+		expectedPattern string
+	}{
+		{
+			name:           "No ignore patterns",
+			relativePath:   "webapp/dist/main.js",
+			ignorePatterns: []string{},
+			expectedIgnore: false,
+			expectedPattern: "",
+		},
+		{
+			name:           "Direct file match",
+			relativePath:   "test.js",
+			ignorePatterns: []string{"*.js"},
+			expectedIgnore: true,
+			expectedPattern: "*.js",
+		},
+		{
+			name:           "Directory pattern with slash",
+			relativePath:   "build/output.js",
+			ignorePatterns: []string{"build/"},
+			expectedIgnore: true,
+			expectedPattern: "build/",
+		},
+		{
+			name:           "Directory pattern without slash",
+			relativePath:   "build/output.js",
+			ignorePatterns: []string{"build"},
+			expectedIgnore: true,
+			expectedPattern: "build",
+		},
+		{
+			name:           "Nested directory match",
+			relativePath:   "webapp/dist/main.js",
+			ignorePatterns: []string{"dist"},
+			expectedIgnore: true,
+			expectedPattern: "dist",
+		},
+		{
+			name:           "Multiple patterns - first match",
+			relativePath:   "test.js",
+			ignorePatterns: []string{"*.js", "*.css"},
+			expectedIgnore: true,
+			expectedPattern: "*.js",
+		},
+		{
+			name:           "Multiple patterns - second match",
+			relativePath:   "style.css",
+			ignorePatterns: []string{"*.js", "*.css"},
+			expectedIgnore: true,
+			expectedPattern: "*.css",
+		},
+		{
+			name:           "No match",
+			relativePath:   "README.md",
+			ignorePatterns: []string{"*.js", "*.css"},
+			expectedIgnore: false,
+			expectedPattern: "",
+		},
+		{
+			name:           "Complex path with match",
+			relativePath:   "webapp/node_modules/package/file.js",
+			ignorePatterns: []string{"node_modules"},
+			expectedIgnore: true,
+			expectedPattern: "node_modules",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ignored, pattern := isPathIgnored(tt.relativePath, tt.ignorePatterns)
+
+			if ignored != tt.expectedIgnore {
+				t.Errorf("Expected ignore result %v but got %v", tt.expectedIgnore, ignored)
+			}
+
+			if pattern != tt.expectedPattern {
+				t.Errorf("Expected pattern %q but got %q", tt.expectedPattern, pattern)
+			}
+		})
+	}
+}

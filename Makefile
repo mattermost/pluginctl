@@ -141,6 +141,7 @@ dev: fmt lint snapshot ## Quick development build (fmt, lint, build)
 # Check changes target
 .PHONY: check-changes
 check-changes: lint test ## Check changes (lint, test)
+	@echo "All checks passed!"
 
 # CI target
 .PHONY: ci

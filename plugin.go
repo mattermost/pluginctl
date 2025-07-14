@@ -11,6 +11,11 @@ import (
 
 const PluginManifestName = "plugin.json"
 
+// PluginCtlConfig represents the configuration for pluginctl stored in the manifest props.
+type PluginCtlConfig struct {
+	IgnoreAssets []string `json:"ignore_assets,omitempty"`
+}
+
 // LoadPluginManifest loads and parses the plugin.json file from the current directory.
 func LoadPluginManifest() (*model.Manifest, error) {
 	return LoadPluginManifestFromPath(".")
@@ -77,4 +82,35 @@ func GetEffectivePluginPath(flagPath string) string {
 	}
 
 	return cwd
+}
+
+// ParsePluginCtlConfig extracts and parses the pluginctl configuration from the manifest props.
+func ParsePluginCtlConfig(manifest *model.Manifest) (*PluginCtlConfig, error) {
+	// Default configuration
+	config := &PluginCtlConfig{
+		IgnoreAssets: []string{},
+	}
+
+	// Check if props exist
+	if manifest.Props == nil {
+		return config, nil
+	}
+
+	// Check if pluginctl config exists in props
+	pluginctlData, exists := manifest.Props["pluginctl"]
+	if !exists {
+		return config, nil
+	}
+
+	// Convert to JSON and parse
+	jsonData, err := json.Marshal(pluginctlData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal pluginctl config: %w", err)
+	}
+
+	if err := json.Unmarshal(jsonData, config); err != nil {
+		return nil, fmt.Errorf("failed to parse pluginctl config: %w", err)
+	}
+
+	return config, nil
 }

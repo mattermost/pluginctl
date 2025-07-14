@@ -32,13 +32,19 @@ func RunUpdateAssetsCommand(args []string, pluginPath string) error {
 		return fmt.Errorf("failed to load plugin manifest: %w", err)
 	}
 
+	pluginCtlConfig, err := ParsePluginCtlConfig(manifest)
+	if err != nil {
+		return fmt.Errorf("failed to parse pluginctl config: %w", err)
+	}
+
 	hasWebapp := HasWebappCode(manifest)
 	updatedCount := 0
 
 	config := AssetProcessorConfig{
-		pluginPath:   pluginPath,
-		hasWebapp:    hasWebapp,
-		updatedCount: &updatedCount,
+		pluginPath:      pluginPath,
+		hasWebapp:       hasWebapp,
+		updatedCount:    &updatedCount,
+		pluginCtlConfig: pluginCtlConfig,
 	}
 
 	err = fs.WalkDir(assetsFS, "assets", func(path string, d fs.DirEntry, err error) error {
@@ -54,10 +60,67 @@ func RunUpdateAssetsCommand(args []string, pluginPath string) error {
 	return nil
 }
 
+// isPathIgnored checks if a path matches any of the ignore patterns.
+func isPathIgnored(relativePath string, ignorePatterns []string) (ignored bool, matchedPattern string) {
+	for _, pattern := range ignorePatterns {
+		// Direct file or path match
+		if matched, err := filepath.Match(pattern, relativePath); err == nil && matched {
+			return true, pattern
+		}
+
+		// Check if the path starts with the pattern (for directory patterns)
+		if strings.HasSuffix(pattern, "/") && strings.HasPrefix(relativePath, pattern) {
+			return true, pattern
+		}
+
+		// Check if any parent directory matches the pattern
+		if matchesParentDirectory(relativePath, pattern) {
+			return true, pattern
+		}
+
+		// Check if any directory component matches the pattern
+		if matchesDirectoryComponent(relativePath, pattern) {
+			return true, pattern
+		}
+	}
+
+	return false, ""
+}
+
+// matchesParentDirectory checks if any parent directory matches the pattern.
+func matchesParentDirectory(relativePath, pattern string) bool {
+	dir := filepath.Dir(relativePath)
+	for dir != "." && dir != "/" {
+		if matched, err := filepath.Match(pattern, dir); err == nil && matched {
+			return true
+		}
+		// Also check direct string match for directory names
+		if filepath.Base(dir) == pattern {
+			return true
+		}
+		dir = filepath.Dir(dir)
+	}
+
+	return false
+}
+
+// matchesDirectoryComponent checks if any directory component matches the pattern.
+func matchesDirectoryComponent(relativePath, pattern string) bool {
+	parts := strings.Split(relativePath, "/")
+	for _, part := range parts {
+		if matched, err := filepath.Match(pattern, part); err == nil && matched {
+			return true
+		}
+	}
+
+	return false
+}
+
 type AssetProcessorConfig struct {
-	pluginPath   string
-	hasWebapp    bool
-	updatedCount *int
+	pluginPath      string
+	hasWebapp       bool
+	updatedCount    *int
+	pluginCtlConfig *PluginCtlConfig
 }
 
 func processAssetEntry(path string, d fs.DirEntry, err error, config AssetProcessorConfig) error {
@@ -72,6 +135,13 @@ func processAssetEntry(path string, d fs.DirEntry, err error, config AssetProces
 	relativePath := path[assetsPrefixLen:]
 
 	if !config.hasWebapp && strings.HasPrefix(relativePath, "webapp") {
+		return nil
+	}
+
+	// Check if path is ignored by pluginctl config
+	if ignored, pattern := isPathIgnored(relativePath, config.pluginCtlConfig.IgnoreAssets); ignored {
+		Logger.Info("Skipping asset due to ignore pattern", "path", relativePath, "pattern", pattern)
+
 		return nil
 	}
 
