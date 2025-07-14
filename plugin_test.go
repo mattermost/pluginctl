@@ -521,73 +521,73 @@ func TestParsePluginCtlConfig(t *testing.T) {
 
 func TestIsPathIgnored(t *testing.T) {
 	tests := []struct {
-		name           string
-		relativePath   string
-		ignorePatterns []string
-		expectedIgnore bool
+		name            string
+		relativePath    string
+		ignorePatterns  []string
+		expectedIgnore  bool
 		expectedPattern string
 	}{
 		{
-			name:           "No ignore patterns",
-			relativePath:   "webapp/dist/main.js",
-			ignorePatterns: []string{},
-			expectedIgnore: false,
+			name:            "No ignore patterns",
+			relativePath:    "webapp/dist/main.js",
+			ignorePatterns:  []string{},
+			expectedIgnore:  false,
 			expectedPattern: "",
 		},
 		{
-			name:           "Direct file match",
-			relativePath:   "test.js",
-			ignorePatterns: []string{"*.js"},
-			expectedIgnore: true,
+			name:            "Direct file match",
+			relativePath:    "test.js",
+			ignorePatterns:  []string{"*.js"},
+			expectedIgnore:  true,
 			expectedPattern: "*.js",
 		},
 		{
-			name:           "Directory pattern with slash",
-			relativePath:   "build/output.js",
-			ignorePatterns: []string{"build/"},
-			expectedIgnore: true,
+			name:            "Directory pattern with slash",
+			relativePath:    "build/output.js",
+			ignorePatterns:  []string{"build/"},
+			expectedIgnore:  true,
 			expectedPattern: "build/",
 		},
 		{
-			name:           "Directory pattern without slash",
-			relativePath:   "build/output.js",
-			ignorePatterns: []string{"build"},
-			expectedIgnore: true,
+			name:            "Directory pattern without slash",
+			relativePath:    "build/output.js",
+			ignorePatterns:  []string{"build"},
+			expectedIgnore:  true,
 			expectedPattern: "build",
 		},
 		{
-			name:           "Nested directory match",
-			relativePath:   "webapp/dist/main.js",
-			ignorePatterns: []string{"dist"},
-			expectedIgnore: true,
+			name:            "Nested directory match",
+			relativePath:    "webapp/dist/main.js",
+			ignorePatterns:  []string{"dist"},
+			expectedIgnore:  true,
 			expectedPattern: "dist",
 		},
 		{
-			name:           "Multiple patterns - first match",
-			relativePath:   "test.js",
-			ignorePatterns: []string{"*.js", "*.css"},
-			expectedIgnore: true,
+			name:            "Multiple patterns - first match",
+			relativePath:    "test.js",
+			ignorePatterns:  []string{"*.js", "*.css"},
+			expectedIgnore:  true,
 			expectedPattern: "*.js",
 		},
 		{
-			name:           "Multiple patterns - second match",
-			relativePath:   "style.css",
-			ignorePatterns: []string{"*.js", "*.css"},
-			expectedIgnore: true,
+			name:            "Multiple patterns - second match",
+			relativePath:    "style.css",
+			ignorePatterns:  []string{"*.js", "*.css"},
+			expectedIgnore:  true,
 			expectedPattern: "*.css",
 		},
 		{
-			name:           "No match",
-			relativePath:   "README.md",
-			ignorePatterns: []string{"*.js", "*.css"},
-			expectedIgnore: false,
+			name:            "No match",
+			relativePath:    "README.md",
+			ignorePatterns:  []string{"*.js", "*.css"},
+			expectedIgnore:  false,
 			expectedPattern: "",
 		},
 		{
-			name:           "Complex path with match",
-			relativePath:   "webapp/node_modules/package/file.js",
-			ignorePatterns: []string{"node_modules"},
-			expectedIgnore: true,
+			name:            "Complex path with match",
+			relativePath:    "webapp/node_modules/package/file.js",
+			ignorePatterns:  []string{"node_modules"},
+			expectedIgnore:  true,
 			expectedPattern: "node_modules",
 		},
 	}

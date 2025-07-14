@@ -44,6 +44,7 @@ func RunManifestCommand(args []string, pluginPath string) error {
 	case "check":
 		if err := manifest.IsValid(); err != nil {
 			Logger.Error("Plugin manifest validation failed", "error", err)
+
 			return err
 		}
 		Logger.Info("Plugin manifest is valid")
