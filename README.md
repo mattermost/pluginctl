@@ -20,14 +20,7 @@ Download the latest binary from the [releases page](https://github.com/mattermos
 
 ```bash
 # Using go install
-go install github.com/mattermost/pluginctl/cmd/pluginctl@latest
-
-# Using Homebrew (if available)
-brew install mattermost/tap/pluginctl
-
-# Using Scoop on Windows (if available)
-scoop bucket add mattermost https://github.com/mattermost/scoop-bucket.git
-scoop install pluginctl
+go install github.com/mattermost/pluginctl/cmd/pluginctl
 ```
 
 ## Usage
@@ -42,7 +35,7 @@ pluginctl info
 pluginctl --help
 
 # Show version
-pluginctl --version
+pluginctl version
 ```
 
 ### Plugin Path Configuration
@@ -50,11 +43,13 @@ pluginctl --version
 `pluginctl` supports multiple ways to specify the plugin directory:
 
 1. **Command-line flag** (highest priority):
+
    ```bash
    pluginctl --plugin-path /path/to/plugin info
    ```
 
 2. **Environment variable**:
+
    ```bash
    export PLUGINCTL_PLUGIN_PATH=/path/to/plugin
    pluginctl info
@@ -69,11 +64,6 @@ pluginctl --version
 ### Available Commands
 
 Run `pluginctl --help` to see all available commands and options.
-
-## Requirements
-
-- Go 1.24.3 or later (for building from source)
-- Valid Mattermost plugin directory with `plugin.json` manifest file
 
 ## Development
 
@@ -92,13 +82,6 @@ make dev
 # Run tests and checks before committing
 make check-changes
 ```
-
-### Key Make Targets
-
-- `make dev` - Quick development build
-- `make check-changes` - Validate changes (lint, security, test)
-- `make test` - Run tests
-- `make help` - Show all available targets
 
 See `make help` for the complete list of available targets.
 
@@ -136,6 +119,5 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 For questions, issues, or feature requests, please:
 
-1. Check the [issues](https://github.com/mattermost/pluginctl/issues) page
-2. Create a new issue if your problem isn't already reported
-3. Join the [Mattermost Community](https://community.mattermost.com/) for general discussion
+- Check the [issues](https://github.com/mattermost/pluginctl/issues) or create a new issue if your problem isn't already reported
+- Join the [Mattermost Community](https://community.mattermost.com/) for general discussion

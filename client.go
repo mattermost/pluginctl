@@ -27,7 +27,8 @@ func getClient(ctx context.Context) (*model.Client4, error) {
 	}
 
 	if os.Getenv("MM_LOCALSOCKETPATH") != "" {
-		Logger.Info("No socket found for local mode deployment. Attempting to authenticate with credentials.", "socket_path", socketPath)
+		Logger.Info("No socket found for local mode deployment. Attempting to authenticate with credentials.",
+			"socket_path", socketPath)
 	}
 
 	siteURL := os.Getenv("MM_SERVICESETTINGS_SITEURL")

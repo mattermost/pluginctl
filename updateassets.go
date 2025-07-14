@@ -10,8 +10,15 @@ import (
 	"strings"
 )
 
-//go:embed assets/**/*
+//go:embed assets/*
 var assetsFS embed.FS
+
+const (
+	assetsPrefix         = "assets/"
+	assetsPrefixLen      = 7
+	directoryPermissions = 0o750
+	filePermissions      = 0o600
+)
 
 func RunUpdateAssetsCommand(args []string, pluginPath string) error {
 	if len(args) > 0 {
@@ -20,73 +27,22 @@ func RunUpdateAssetsCommand(args []string, pluginPath string) error {
 
 	Logger.Info("Updating assets in plugin directory", "path", pluginPath)
 
-	// Load plugin manifest to check for webapp code
 	manifest, err := LoadPluginManifestFromPath(pluginPath)
 	if err != nil {
 		return fmt.Errorf("failed to load plugin manifest: %w", err)
 	}
 
-	// Check if the plugin has webapp code according to manifest
 	hasWebapp := HasWebappCode(manifest)
+	updatedCount := 0
 
-	// Counter for updated files
-	var updatedCount int
+	config := AssetProcessorConfig{
+		pluginPath:   pluginPath,
+		hasWebapp:    hasWebapp,
+		updatedCount: &updatedCount,
+	}
 
-	// Walk through the embedded assets
 	err = fs.WalkDir(assetsFS, "assets", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Skip the root assets directory
-		if path == "assets" {
-			return nil
-		}
-
-		// Remove the "assets/" prefix to get the relative path
-		relativePath := path[7:] // len("assets/") = 7
-
-		// Skip webapp assets if plugin doesn't have webapp code
-		if !hasWebapp && strings.HasPrefix(relativePath, "webapp") {
-			return nil
-		}
-
-		targetPath := filepath.Join(pluginPath, relativePath)
-
-		if d.IsDir() {
-			// Create directory if it doesn't exist
-			if err := os.MkdirAll(targetPath, 0755); err != nil {
-				return fmt.Errorf("failed to create directory %s: %w", targetPath, err)
-			}
-		} else {
-			// Read file content from embedded FS
-			content, err := assetsFS.ReadFile(path)
-			if err != nil {
-				return fmt.Errorf("failed to read embedded file %s: %w", path, err)
-			}
-
-			// Check if target file exists and compare content
-			existingContent, err := os.ReadFile(targetPath)
-			if err == nil && bytes.Equal(existingContent, content) {
-				// File exists and content is identical, skip update
-				return nil
-			}
-
-			// Create parent directory if it doesn't exist
-			parentDir := filepath.Dir(targetPath)
-			if err := os.MkdirAll(parentDir, 0755); err != nil {
-				return fmt.Errorf("failed to create parent directory %s: %w", parentDir, err)
-			}
-
-			// Write file to target location
-			if err := os.WriteFile(targetPath, content, 0644); err != nil {
-				return fmt.Errorf("failed to write file %s: %w", targetPath, err)
-			}
-			Logger.Info("Updated file", "path", relativePath)
-			updatedCount++
-		}
-
-		return nil
+		return processAssetEntry(path, d, err, config)
 	})
 
 	if err != nil {
@@ -94,5 +50,96 @@ func RunUpdateAssetsCommand(args []string, pluginPath string) error {
 	}
 
 	Logger.Info("Assets updated successfully!", "files_updated", updatedCount)
+
+	return nil
+}
+
+type AssetProcessorConfig struct {
+	pluginPath   string
+	hasWebapp    bool
+	updatedCount *int
+}
+
+func processAssetEntry(path string, d fs.DirEntry, err error, config AssetProcessorConfig) error {
+	if err != nil {
+		return err
+	}
+
+	if path == "assets" {
+		return nil
+	}
+
+	relativePath := path[assetsPrefixLen:]
+
+	if !config.hasWebapp && strings.HasPrefix(relativePath, "webapp") {
+		return nil
+	}
+
+	targetPath := filepath.Join(config.pluginPath, relativePath)
+
+	if d.IsDir() {
+		return createDirectory(targetPath)
+	}
+
+	return processAssetFile(path, targetPath, relativePath, config.updatedCount)
+}
+
+func processAssetFile(embeddedPath, targetPath, relativePath string, updatedCount *int) error {
+	shouldUpdate, err := shouldUpdateFile(embeddedPath, targetPath)
+	if err != nil {
+		return err
+	}
+
+	if shouldUpdate {
+		err = updateFile(embeddedPath, targetPath, relativePath)
+		if err != nil {
+			return err
+		}
+		(*updatedCount)++
+	}
+
+	return nil
+}
+
+func createDirectory(targetPath string) error {
+	if err := os.MkdirAll(targetPath, directoryPermissions); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", targetPath, err)
+	}
+
+	return nil
+}
+
+func shouldUpdateFile(embeddedPath, targetPath string) (bool, error) {
+	content, err := assetsFS.ReadFile(embeddedPath)
+	if err != nil {
+		return false, fmt.Errorf("failed to read embedded file %s: %w", embeddedPath, err)
+	}
+
+	existingContent, err := os.ReadFile(targetPath)
+	if err != nil {
+		// File doesn't exist or other error, should update
+		return true, nil //nolint:nilerr
+	}
+
+	return !bytes.Equal(existingContent, content), nil
+}
+
+func updateFile(embeddedPath, targetPath, relativePath string) error {
+	content, err := assetsFS.ReadFile(embeddedPath)
+	if err != nil {
+		return fmt.Errorf("failed to read embedded file %s: %w", embeddedPath, err)
+	}
+
+	parentDir := filepath.Dir(targetPath)
+	if err := os.MkdirAll(parentDir, directoryPermissions); err != nil {
+		return fmt.Errorf("failed to create parent directory %s: %w", parentDir, err)
+	}
+
+	if err := os.WriteFile(targetPath, content, filePermissions); err != nil {
+		return fmt.Errorf("failed to write file %s: %w", targetPath, err)
+	}
+
+	Logger.Info("Updated file", "path", relativePath)
+
 	return nil
 }

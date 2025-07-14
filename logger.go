@@ -8,10 +8,10 @@ import (
 	"github.com/lmittmann/tint"
 )
 
-// Logger is the global logger instance
+// Logger is the global logger instance.
 var Logger *slog.Logger
 
-// InitLogger initializes the global logger
+// InitLogger initializes the global logger.
 func InitLogger() {
 	// Create a tint handler for colorized output
 	handler := tint.NewHandler(os.Stderr, &tint.Options{
@@ -24,7 +24,7 @@ func InitLogger() {
 	Logger = slog.New(handler)
 }
 
-// SetLogLevel sets the minimum logging level
+// SetLogLevel sets the minimum logging level.
 func SetLogLevel(level slog.Level) {
 	handler := tint.NewHandler(os.Stderr, &tint.Options{
 		Level:      level,

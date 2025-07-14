@@ -19,30 +19,44 @@ func InfoCommand() error {
 
 // PrintPluginInfo displays formatted plugin information.
 func PrintPluginInfo(manifest *model.Manifest) error {
+	printBasicInfo(manifest)
+	printCodeComponents(manifest)
+	printSettingsSchema(manifest)
+
+	return nil
+}
+
+// printBasicInfo prints basic plugin information.
+func printBasicInfo(manifest *model.Manifest) {
 	Logger.Info("Plugin Information:")
 	Logger.Info("==================")
 
-	// Basic plugin info
 	Logger.Info("ID:", "value", manifest.Id)
 	Logger.Info("Name:", "value", manifest.Name)
 	Logger.Info("Version:", "value", manifest.Version)
 
-	// Minimum Mattermost version
-	if manifest.MinServerVersion != "" {
-		Logger.Info("Min MM Version:", "value", manifest.MinServerVersion)
-	} else {
-		Logger.Info("Min MM Version:", "value", "Not specified")
+	minVersion := manifest.MinServerVersion
+	if minVersion == "" {
+		minVersion = "Not specified"
 	}
+	Logger.Info("Min MM Version:", "value", minVersion)
 
-	// Description if available
 	if manifest.Description != "" {
 		Logger.Info("Description:", "value", manifest.Description)
 	}
+}
 
+// printCodeComponents prints information about server and webapp code.
+func printCodeComponents(manifest *model.Manifest) {
 	Logger.Info("Code Components:")
 	Logger.Info("================")
 
-	// Server code presence
+	printServerCodeInfo(manifest)
+	printWebappCodeInfo(manifest)
+}
+
+// printServerCodeInfo prints server code information.
+func printServerCodeInfo(manifest *model.Manifest) {
 	if HasServerCode(manifest) {
 		Logger.Info("Server Code:", "value", "Yes")
 		if manifest.Server != nil && len(manifest.Server.Executables) > 0 {
@@ -55,8 +69,10 @@ func PrintPluginInfo(manifest *model.Manifest) error {
 	} else {
 		Logger.Info("Server Code:", "value", "No")
 	}
+}
 
-	// Webapp code presence
+// printWebappCodeInfo prints webapp code information.
+func printWebappCodeInfo(manifest *model.Manifest) {
 	if HasWebappCode(manifest) {
 		Logger.Info("Webapp Code:", "value", "Yes")
 		if manifest.Webapp != nil && manifest.Webapp.BundlePath != "" {
@@ -65,15 +81,15 @@ func PrintPluginInfo(manifest *model.Manifest) error {
 	} else {
 		Logger.Info("Webapp Code:", "value", "No")
 	}
+}
 
-	// Settings schema
+// printSettingsSchema prints settings schema information.
+func printSettingsSchema(manifest *model.Manifest) {
+	value := "No"
 	if manifest.SettingsSchema != nil {
-		Logger.Info("Settings Schema:", "value", "Yes")
-	} else {
-		Logger.Info("Settings Schema:", "value", "No")
+		value = "Yes"
 	}
-
-	return nil
+	Logger.Info("Settings Schema:", "value", value)
 }
 
 // InfoCommandWithPath implements the 'info' command with a custom path.
