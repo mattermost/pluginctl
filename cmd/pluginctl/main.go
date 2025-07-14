@@ -118,7 +118,7 @@ Commands:
   disable        Disable plugin from current directory in Mattermost server
   reset          Reset plugin from current directory (disable then enable)
   updateassets   Update plugin files from embedded assets
-  manifest       Get plugin manifest information (id, version, has_server, has_webapp)
+  manifest       Get plugin manifest information (id, version, has_server, has_webapp, check)
   logs           View plugin logs (use --watch to follow logs in real-time)
   help           Show this help message
   version        Show version information
@@ -134,6 +134,7 @@ Examples:
   pluginctl manifest version                 # Get plugin version
   pluginctl manifest has_server              # Check if plugin has server code
   pluginctl manifest has_webapp              # Check if plugin has webapp code
+  pluginctl manifest check                   # Validate plugin manifest
   pluginctl logs                             # View recent plugin logs
   pluginctl logs --watch                     # Watch plugin logs in real-time
   export PLUGINCTL_PLUGIN_PATH=/path/to/plugin

@@ -9,7 +9,7 @@ all: check-style test dist
 ## Ensures the plugin manifest is valid
 .PHONY: manifest-check
 manifest-check:
-	./build/bin/manifest check
+	pluginctl manifest check
 
 
 ## Builds the server, if it exists, for all supported architectures, unless MM_SERVICESETTINGS_ENABLEDEVELOPER is set.
@@ -55,7 +55,7 @@ endif
 bundle:
 	rm -rf dist/
 	mkdir -p dist/$(PLUGIN_ID)
-	./build/bin/manifest dist
+	cp plugin.json dist/$(PLUGIN_ID)/plugin.json
 ifneq ($(wildcard $(ASSETS_DIR)/.),)
 	cp -r $(ASSETS_DIR) dist/$(PLUGIN_ID)/
 endif

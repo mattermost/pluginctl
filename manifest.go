@@ -8,7 +8,7 @@ import (
 // RunManifestCommand implements the 'manifest' command functionality with subcommands.
 func RunManifestCommand(args []string, pluginPath string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("manifest command requires a subcommand: id, version, has_server, has_webapp")
+		return fmt.Errorf("manifest command requires a subcommand: id, version, has_server, has_webapp, check")
 	}
 
 	// Convert to absolute path
@@ -41,8 +41,14 @@ func RunManifestCommand(args []string, pluginPath string) error {
 		} else {
 			fmt.Println("false")
 		}
+	case "check":
+		if err := manifest.IsValid(); err != nil {
+			Logger.Error("Plugin manifest validation failed", "error", err)
+			return err
+		}
+		Logger.Info("Plugin manifest is valid")
 	default:
-		return fmt.Errorf("unknown subcommand: %s. Available subcommands: id, version, has_server, has_webapp",
+		return fmt.Errorf("unknown subcommand: %s. Available subcommands: id, version, has_server, has_webapp, check",
 			subcommand)
 	}
 
