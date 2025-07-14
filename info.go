@@ -28,28 +28,28 @@ func PrintPluginInfo(manifest *model.Manifest) error {
 
 // printBasicInfo prints basic plugin information.
 func printBasicInfo(manifest *model.Manifest) {
-	Logger.Info("Plugin Information:")
-	Logger.Info("==================")
+	fmt.Println("Plugin Information:")
+	fmt.Println("==================")
 
-	Logger.Info("ID:", "value", manifest.Id)
-	Logger.Info("Name:", "value", manifest.Name)
-	Logger.Info("Version:", "value", manifest.Version)
+	fmt.Printf("ID:              %s\n", manifest.Id)
+	fmt.Printf("Name:            %s\n", manifest.Name)
+	fmt.Printf("Version:         %s\n", manifest.Version)
 
 	minVersion := manifest.MinServerVersion
 	if minVersion == "" {
 		minVersion = "Not specified"
 	}
-	Logger.Info("Min MM Version:", "value", minVersion)
+	fmt.Printf("Min MM Version:  %s\n", minVersion)
 
 	if manifest.Description != "" {
-		Logger.Info("Description:", "value", manifest.Description)
+		fmt.Printf("Description:     %s\n", manifest.Description)
 	}
 }
 
 // printCodeComponents prints information about server and webapp code.
 func printCodeComponents(manifest *model.Manifest) {
-	Logger.Info("Code Components:")
-	Logger.Info("================")
+	fmt.Println("Code Components:")
+	fmt.Println("================")
 
 	printServerCodeInfo(manifest)
 	printWebappCodeInfo(manifest)
@@ -58,28 +58,33 @@ func printCodeComponents(manifest *model.Manifest) {
 // printServerCodeInfo prints server code information.
 func printServerCodeInfo(manifest *model.Manifest) {
 	if HasServerCode(manifest) {
-		Logger.Info("Server Code:", "value", "Yes")
+		fmt.Println("Server Code:     Yes")
 		if manifest.Server != nil && len(manifest.Server.Executables) > 0 {
-			var executables []string
+			fmt.Print("Executables:     ")
+			first := true
 			for platform := range manifest.Server.Executables {
-				executables = append(executables, platform)
+				if !first {
+					fmt.Print(", ")
+				}
+				fmt.Print(platform)
+				first = false
 			}
-			Logger.Info("Executables:", "platforms", executables)
+			fmt.Println()
 		}
 	} else {
-		Logger.Info("Server Code:", "value", "No")
+		fmt.Println("Server Code:     No")
 	}
 }
 
 // printWebappCodeInfo prints webapp code information.
 func printWebappCodeInfo(manifest *model.Manifest) {
 	if HasWebappCode(manifest) {
-		Logger.Info("Webapp Code:", "value", "Yes")
+		fmt.Println("Webapp Code:     Yes")
 		if manifest.Webapp != nil && manifest.Webapp.BundlePath != "" {
-			Logger.Info("Bundle Path:", "value", manifest.Webapp.BundlePath)
+			fmt.Printf("Bundle Path:   %s\n", manifest.Webapp.BundlePath)
 		}
 	} else {
-		Logger.Info("Webapp Code:", "value", "No")
+		fmt.Println("Webapp Code:     No")
 	}
 }
 
@@ -89,7 +94,7 @@ func printSettingsSchema(manifest *model.Manifest) {
 	if manifest.SettingsSchema != nil {
 		value = "Yes"
 	}
-	Logger.Info("Settings Schema:", "value", value)
+	fmt.Printf("Settings Schema: %s\n", value)
 }
 
 // InfoCommandWithPath implements the 'info' command with a custom path.

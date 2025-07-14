@@ -8,6 +8,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
+
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 //go:embed assets/*
@@ -45,6 +48,7 @@ func RunUpdateAssetsCommand(args []string, pluginPath string) error {
 		hasWebapp:       hasWebapp,
 		updatedCount:    &updatedCount,
 		pluginCtlConfig: pluginCtlConfig,
+		manifest:        manifest,
 	}
 
 	err = fs.WalkDir(assetsFS, "assets", func(path string, d fs.DirEntry, err error) error {
@@ -121,6 +125,12 @@ type AssetProcessorConfig struct {
 	hasWebapp       bool
 	updatedCount    *int
 	pluginCtlConfig *PluginCtlConfig
+	manifest        *model.Manifest
+}
+
+// TemplateContext holds the data available to templates.
+type TemplateContext struct {
+	Manifest *model.Manifest
 }
 
 func processAssetEntry(path string, d fs.DirEntry, err error, config AssetProcessorConfig) error {
@@ -151,21 +161,21 @@ func processAssetEntry(path string, d fs.DirEntry, err error, config AssetProces
 		return createDirectory(targetPath)
 	}
 
-	return processAssetFile(path, targetPath, relativePath, config.updatedCount)
+	return processAssetFile(path, targetPath, relativePath, config)
 }
 
-func processAssetFile(embeddedPath, targetPath, relativePath string, updatedCount *int) error {
-	shouldUpdate, err := shouldUpdateFile(embeddedPath, targetPath)
+func processAssetFile(embeddedPath, targetPath, relativePath string, config AssetProcessorConfig) error {
+	shouldUpdate, err := shouldUpdateFile(embeddedPath, targetPath, config.manifest)
 	if err != nil {
 		return err
 	}
 
 	if shouldUpdate {
-		err = updateFile(embeddedPath, targetPath, relativePath)
+		err = updateFile(embeddedPath, targetPath, relativePath, config.manifest)
 		if err != nil {
 			return err
 		}
-		(*updatedCount)++
+		(*config.updatedCount)++
 	}
 
 	return nil
@@ -179,10 +189,11 @@ func createDirectory(targetPath string) error {
 	return nil
 }
 
-func shouldUpdateFile(embeddedPath, targetPath string) (bool, error) {
-	content, err := assetsFS.ReadFile(embeddedPath)
+func shouldUpdateFile(embeddedPath, targetPath string, manifest *model.Manifest) (bool, error) {
+	// Process the template to get the final content
+	processedContent, err := processTemplate(embeddedPath, manifest)
 	if err != nil {
-		return false, fmt.Errorf("failed to read embedded file %s: %w", embeddedPath, err)
+		return false, fmt.Errorf("failed to process template %s: %w", embeddedPath, err)
 	}
 
 	existingContent, err := os.ReadFile(targetPath)
@@ -191,13 +202,14 @@ func shouldUpdateFile(embeddedPath, targetPath string) (bool, error) {
 		return true, nil //nolint:nilerr
 	}
 
-	return !bytes.Equal(existingContent, content), nil
+	return !bytes.Equal(existingContent, processedContent), nil
 }
 
-func updateFile(embeddedPath, targetPath, relativePath string) error {
-	content, err := assetsFS.ReadFile(embeddedPath)
+func updateFile(embeddedPath, targetPath, relativePath string, manifest *model.Manifest) error {
+	// Process the template to get the final content
+	processedContent, err := processTemplate(embeddedPath, manifest)
 	if err != nil {
-		return fmt.Errorf("failed to read embedded file %s: %w", embeddedPath, err)
+		return fmt.Errorf("failed to process template %s: %w", embeddedPath, err)
 	}
 
 	parentDir := filepath.Dir(targetPath)
@@ -205,11 +217,40 @@ func updateFile(embeddedPath, targetPath, relativePath string) error {
 		return fmt.Errorf("failed to create parent directory %s: %w", parentDir, err)
 	}
 
-	if err := os.WriteFile(targetPath, content, filePermissions); err != nil {
+	if err := os.WriteFile(targetPath, processedContent, filePermissions); err != nil {
 		return fmt.Errorf("failed to write file %s: %w", targetPath, err)
 	}
 
 	Logger.Info("Updated file", "path", relativePath)
 
 	return nil
+}
+
+// processTemplate processes a template file with the manifest context.
+func processTemplate(embeddedPath string, manifest *model.Manifest) ([]byte, error) {
+	// Read the template content
+	templateContent, err := assetsFS.ReadFile(embeddedPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read embedded file %s: %w", embeddedPath, err)
+	}
+
+	// Create template context
+	context := TemplateContext{
+		Manifest: manifest,
+	}
+
+	// Create and parse the template
+	tmpl, err := template.New(embeddedPath).Parse(string(templateContent))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse template %s: %w", embeddedPath, err)
+	}
+
+	// Execute the template
+	var buf bytes.Buffer
+	err = tmpl.Execute(&buf, context)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute template %s: %w", embeddedPath, err)
+	}
+
+	return buf.Bytes(), nil
 }
