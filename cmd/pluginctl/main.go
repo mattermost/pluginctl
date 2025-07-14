@@ -52,6 +52,8 @@ func runCommand(command string, args []string, pluginPath string) error {
 		return runDisableCommand(args, pluginPath)
 	case "reset":
 		return runResetCommand(args, pluginPath)
+	case "deploy":
+		return runDeployCommand(args, pluginPath)
 	case "updateassets":
 		return runUpdateAssetsCommand(args, pluginPath)
 	case "manifest":
@@ -103,6 +105,10 @@ func runLogsCommand(args []string, pluginPath string) error {
 	return pluginctl.RunLogsCommand(args, pluginPath)
 }
 
+func runDeployCommand(args []string, pluginPath string) error {
+	return pluginctl.RunDeployCommand(args, pluginPath)
+}
+
 func showUsage() {
 	usageText := `pluginctl - Mattermost Plugin Development CLI
 
@@ -117,6 +123,7 @@ Commands:
   enable         Enable plugin from current directory in Mattermost server
   disable        Disable plugin from current directory in Mattermost server
   reset          Reset plugin from current directory (disable then enable)
+  deploy         Upload and enable plugin bundle to Mattermost server
   updateassets   Update plugin files from embedded assets
   manifest       Get plugin manifest information (id, version, has_server, has_webapp, check)
   logs           View plugin logs (use --watch to follow logs in real-time)
@@ -129,6 +136,8 @@ Examples:
   pluginctl enable                           # Enable plugin from current directory
   pluginctl disable                          # Disable plugin from current directory
   pluginctl reset                            # Reset plugin from current directory (disable then enable)
+  pluginctl deploy                           # Upload and enable plugin bundle from ./dist/
+  pluginctl deploy --bundle-path ./bundle.tar.gz # Deploy specific bundle file
   pluginctl updateassets                     # Update plugin files from embedded assets
   pluginctl manifest id                      # Get plugin ID
   pluginctl manifest version                 # Get plugin version
