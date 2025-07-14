@@ -54,6 +54,10 @@ func runCommand(command string, args []string, pluginPath string) error {
 		return runResetCommand(args, pluginPath)
 	case "updateassets":
 		return runUpdateAssetsCommand(args, pluginPath)
+	case "manifest":
+		return runManifestCommand(args, pluginPath)
+	case "logs":
+		return runLogsCommand(args, pluginPath)
 	case "help":
 		showUsage()
 
@@ -91,6 +95,14 @@ func runUpdateAssetsCommand(args []string, pluginPath string) error {
 	return pluginctl.RunUpdateAssetsCommand(args, pluginPath)
 }
 
+func runManifestCommand(args []string, pluginPath string) error {
+	return pluginctl.RunManifestCommand(args, pluginPath)
+}
+
+func runLogsCommand(args []string, pluginPath string) error {
+	return pluginctl.RunLogsCommand(args, pluginPath)
+}
+
 func showUsage() {
 	usageText := `pluginctl - Mattermost Plugin Development CLI
 
@@ -106,6 +118,8 @@ Commands:
   disable        Disable plugin from current directory in Mattermost server
   reset          Reset plugin from current directory (disable then enable)
   updateassets   Update plugin files from embedded assets
+  manifest       Get plugin manifest information (id, version, has_server, has_webapp)
+  logs           View plugin logs (use --watch to follow logs in real-time)
   help           Show this help message
   version        Show version information
 
@@ -116,6 +130,12 @@ Examples:
   pluginctl disable                          # Disable plugin from current directory
   pluginctl reset                            # Reset plugin from current directory (disable then enable)
   pluginctl updateassets                     # Update plugin files from embedded assets
+  pluginctl manifest id                      # Get plugin ID
+  pluginctl manifest version                 # Get plugin version
+  pluginctl manifest has_server              # Check if plugin has server code
+  pluginctl manifest has_webapp              # Check if plugin has webapp code
+  pluginctl logs                             # View recent plugin logs
+  pluginctl logs --watch                     # Watch plugin logs in real-time
   export PLUGINCTL_PLUGIN_PATH=/path/to/plugin
   pluginctl info                              # Show info using environment variable
   pluginctl version                           # Show version information
