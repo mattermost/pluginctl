@@ -128,9 +128,16 @@ type AssetProcessorConfig struct {
 	manifest        *model.Manifest
 }
 
+// GoModule represents information from go.mod file.
+type GoModule struct {
+	Module  string
+	Version string
+}
+
 // TemplateContext holds the data available to templates.
 type TemplateContext struct {
 	Manifest *model.Manifest
+	GoModule *GoModule
 }
 
 func processAssetEntry(path string, d fs.DirEntry, err error, config AssetProcessorConfig) error {
@@ -165,13 +172,13 @@ func processAssetEntry(path string, d fs.DirEntry, err error, config AssetProces
 }
 
 func processAssetFile(embeddedPath, targetPath, relativePath string, config AssetProcessorConfig) error {
-	shouldUpdate, err := shouldUpdateFile(embeddedPath, targetPath, config.manifest)
+	shouldUpdate, err := shouldUpdateFile(embeddedPath, targetPath, config)
 	if err != nil {
 		return err
 	}
 
 	if shouldUpdate {
-		err = updateFile(embeddedPath, targetPath, relativePath, config.manifest)
+		err = updateFile(embeddedPath, targetPath, relativePath, config)
 		if err != nil {
 			return err
 		}
@@ -189,9 +196,9 @@ func createDirectory(targetPath string) error {
 	return nil
 }
 
-func shouldUpdateFile(embeddedPath, targetPath string, manifest *model.Manifest) (bool, error) {
+func shouldUpdateFile(embeddedPath, targetPath string, config AssetProcessorConfig) (bool, error) {
 	// Process the template to get the final content
-	processedContent, err := processTemplate(embeddedPath, manifest)
+	processedContent, err := processTemplate(embeddedPath, config.manifest, config.pluginPath)
 	if err != nil {
 		return false, fmt.Errorf("failed to process template %s: %w", embeddedPath, err)
 	}
@@ -205,9 +212,9 @@ func shouldUpdateFile(embeddedPath, targetPath string, manifest *model.Manifest)
 	return !bytes.Equal(existingContent, processedContent), nil
 }
 
-func updateFile(embeddedPath, targetPath, relativePath string, manifest *model.Manifest) error {
+func updateFile(embeddedPath, targetPath, relativePath string, config AssetProcessorConfig) error {
 	// Process the template to get the final content
-	processedContent, err := processTemplate(embeddedPath, manifest)
+	processedContent, err := processTemplate(embeddedPath, config.manifest, config.pluginPath)
 	if err != nil {
 		return fmt.Errorf("failed to process template %s: %w", embeddedPath, err)
 	}
@@ -227,16 +234,23 @@ func updateFile(embeddedPath, targetPath, relativePath string, manifest *model.M
 }
 
 // processTemplate processes a template file with the manifest context.
-func processTemplate(embeddedPath string, manifest *model.Manifest) ([]byte, error) {
+func processTemplate(embeddedPath string, manifest *model.Manifest, pluginPath string) ([]byte, error) {
 	// Read the template content
 	templateContent, err := assetsFS.ReadFile(embeddedPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read embedded file %s: %w", embeddedPath, err)
 	}
 
+	// Parse go.mod file to get module information
+	goMod, err := parseGoModule(pluginPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse go.mod file: %w", err)
+	}
+
 	// Create template context
 	context := TemplateContext{
 		Manifest: manifest,
+		GoModule: goMod,
 	}
 
 	// Create and parse the template
@@ -253,4 +267,38 @@ func processTemplate(embeddedPath string, manifest *model.Manifest) ([]byte, err
 	}
 
 	return buf.Bytes(), nil
+}
+
+// parseGoModule parses the go.mod file to extract module information.
+func parseGoModule(pluginPath string) (*GoModule, error) {
+	goModPath := filepath.Join(pluginPath, "go.mod")
+
+	content, err := os.ReadFile(goModPath)
+	if err != nil {
+		// If go.mod doesn't exist, return nil without error
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+
+		return nil, fmt.Errorf("failed to read go.mod file: %w", err)
+	}
+
+	goMod := &GoModule{}
+	lines := strings.Split(string(content), "\n")
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+
+		// Parse module line
+		if strings.HasPrefix(line, "module ") {
+			goMod.Module = strings.TrimSpace(strings.TrimPrefix(line, "module "))
+		}
+
+		// Parse go version line
+		if strings.HasPrefix(line, "go ") {
+			goMod.Version = strings.TrimSpace(strings.TrimPrefix(line, "go "))
+		}
+	}
+
+	return goMod, nil
 }

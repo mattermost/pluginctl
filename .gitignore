@@ -31,3 +31,8 @@ Thumbs.db
 .env
 .env.local
 .claude
+
+# Ignore all files in testdata except plugin.json
+testdata/**/*
+!testdata/**/
+!testdata/**/plugin.json
