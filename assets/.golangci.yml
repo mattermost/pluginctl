@@ -6,7 +6,7 @@ linters-settings:
   gofmt:
     simplify: true
   goimports:
-    local-prefixes: {{.GoModule}}
+    local-prefixes: {{.GoModule.Name}}
   govet:
     check-shadowing: true
     enable-all: true

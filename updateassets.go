@@ -130,7 +130,7 @@ type AssetProcessorConfig struct {
 
 // GoModule represents information from go.mod file.
 type GoModule struct {
-	Module  string
+	Name    string
 	Version string
 }
 
@@ -284,19 +284,22 @@ func parseGoModule(pluginPath string) (*GoModule, error) {
 	}
 
 	goMod := &GoModule{}
-	lines := strings.Split(string(content), "\n")
 
-	for _, line := range lines {
+	// Using strings.SplitAfter for more efficiency
+	for line := range strings.SplitSeq(string(content), "\n") {
 		line = strings.TrimSpace(line)
 
 		// Parse module line
-		if strings.HasPrefix(line, "module ") {
-			goMod.Module = strings.TrimSpace(strings.TrimPrefix(line, "module "))
+		if remainder, found := strings.CutPrefix(line, "module "); found {
+			goMod.Name = strings.TrimSpace(remainder)
 		}
 
 		// Parse go version line
-		if strings.HasPrefix(line, "go ") {
-			goMod.Version = strings.TrimSpace(strings.TrimPrefix(line, "go "))
+		if remainder, found := strings.CutPrefix(line, "go "); found {
+			goMod.Version = strings.TrimSpace(remainder)
+
+			// We don't need to parse any further
+			break
 		}
 	}
 
