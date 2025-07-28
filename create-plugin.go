@@ -277,23 +277,90 @@ func promptForModuleName(pluginName string) (string, error) {
 	return result.input, nil
 }
 
+func parseCreatePluginFlags(args []string) (pluginName, moduleName string, err error) {
+	// Parse flags similar to how logs command handles --watch
+	for i, arg := range args {
+		switch arg {
+		case "--name":
+			if i+1 >= len(args) {
+				return "", "", fmt.Errorf("--name flag requires a value")
+			}
+			pluginName = args[i+1]
+		case "--module":
+			if i+1 >= len(args) {
+				return "", "", fmt.Errorf("--module flag requires a value")
+			}
+			moduleName = args[i+1]
+		}
+	}
+
+	// Validate and process plugin name if provided
+	if pluginName != "" {
+		pluginName, err = validateAndProcessPluginName(pluginName)
+		if err != nil {
+			return "", "", err
+		}
+	}
+
+	// Validate module name if provided
+	if moduleName != "" {
+		if validationErr := validateModuleName(moduleName); validationErr != "" {
+			return "", "", fmt.Errorf("invalid module name: %s", validationErr)
+		}
+	}
+
+	return pluginName, moduleName, nil
+}
+
+// validateAndProcessPluginName checks if the plugin name has the correct prefix and adds it if necessary.
+// Example:
+// - If the input is "my-plugin", it returns "mattermost-plugin-my-plugin".
+// - If the input is "mattermost-plugin-my-plugin", it returns "mattermost-plugin-my-plugin".
+func validateAndProcessPluginName(name string) (string, error) {
+	// Check if the name already has the prefix
+	if !strings.HasPrefix(name, pluginPrefix) {
+		// If not, validate the suffix and add prefix
+		if err := validatePluginSuffix(name); err != "" {
+			return "", fmt.Errorf("invalid plugin name: %s", err)
+		}
+
+		return pluginPrefix + name, nil
+	}
+
+	// If it has the prefix, validate the suffix part
+	suffix := strings.TrimPrefix(name, pluginPrefix)
+	if err := validatePluginSuffix(suffix); err != "" {
+		return "", fmt.Errorf("invalid plugin name: %s", err)
+	}
+
+	return name, nil
+}
+
 func RunCreatePluginCommand(args []string, pluginPath string) error {
-	if len(args) > 0 {
-		return fmt.Errorf("create-plugin command does not accept arguments")
+	// Parse flags
+	var pluginName, moduleName string
+	var err error
+
+	pluginName, moduleName, err = parseCreatePluginFlags(args)
+	if err != nil {
+		return fmt.Errorf("failed to parse flags: %w", err)
 	}
 
 	Logger.Info("Starting plugin creation process")
 
-	// Prompt for plugin name
-	pluginName, err := promptForPluginName()
-	if err != nil {
-		return fmt.Errorf("failed to get plugin name: %w", err)
+	// If flags were not provided, fall back to interactive mode
+	if pluginName == "" {
+		pluginName, err = promptForPluginName()
+		if err != nil {
+			return fmt.Errorf("failed to get plugin name: %w", err)
+		}
 	}
 
-	// Prompt for module name
-	moduleName, err := promptForModuleName(pluginName)
-	if err != nil {
-		return fmt.Errorf("failed to get module name: %w", err)
+	if moduleName == "" {
+		moduleName, err = promptForModuleName(pluginName)
+		if err != nil {
+			return fmt.Errorf("failed to get module name: %w", err)
+		}
 	}
 
 	Logger.Info("Creating plugin", "name", pluginName, "module", moduleName)

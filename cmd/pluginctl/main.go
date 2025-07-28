@@ -133,7 +133,7 @@ Commands:
   updateassets   Update plugin files from embedded assets
   manifest       Get plugin manifest information (id, version, has_server, has_webapp, check)
   logs           View plugin logs (use --watch to follow logs in real-time)
-  create-plugin  Create a new plugin from the starter template
+  create-plugin  Create a new plugin from the starter template (supports --name and --module flags)
   help           Show this help message
   version        Show version information
 
@@ -153,7 +153,9 @@ Examples:
   pluginctl manifest check                   # Validate plugin manifest
   pluginctl logs                             # View recent plugin logs
   pluginctl logs --watch                     # Watch plugin logs in real-time
-  pluginctl create-plugin                    # Create a new plugin from the starter template
+  pluginctl create-plugin                    # Create a new plugin from the starter template (interactive)
+  pluginctl create-plugin --name example \
+                      --module github.com/user/mattermost-plugin-example # Create plugin non-interactively
   export PLUGINCTL_PLUGIN_PATH=/path/to/plugin
   pluginctl info                              # Show info using environment variable
   pluginctl version                           # Show version information
