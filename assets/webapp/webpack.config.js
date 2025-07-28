@@ -2,18 +2,12 @@ const exec = require('child_process').exec;
 
 const path = require('path');
 
-const webpack = require('webpack');
-
 const PLUGIN_ID = require('../plugin.json').id;
 
 const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
 const isDev = NPM_TARGET === 'debug' || NPM_TARGET === 'debug:watch';
 
-const plugins = [
-    new webpack.ProvidePlugin({
-        process: 'process/browser',
-    }),
-];
+const plugins = [];
 if (NPM_TARGET === 'build:watch' || NPM_TARGET === 'debug:watch') {
     plugins.push({
         apply: (compiler) => {
@@ -54,8 +48,6 @@ const config = {
         rules: [
             {
                 test: /\.(js|jsx|ts|tsx)$/,
-
-                //exclude: /node_modules\/(?!(mattermost-webapp|@mattermost)\/).*/,
                 exclude: /node_modules/,
                 use: {
                     loader: 'babel-loader',
@@ -82,10 +74,6 @@ const config = {
                         },
                     },
                 ],
-            },
-            {
-                test: /\.svg$/,
-                use: ['@svgr/webpack'],
             },
         ],
     },
