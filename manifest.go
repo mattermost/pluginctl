@@ -91,8 +91,32 @@ func applyManifest(manifest *model.Manifest, pluginPath string) error {
 
 // RunManifestCommand implements the 'manifest' command functionality with subcommands.
 func RunManifestCommand(args []string, pluginPath string) error {
+	helpText := `Manage plugin manifest files
+
+Usage:
+  pluginctl manifest <subcommand> [options]
+
+Subcommands:
+  get TEMPLATE      Get manifest field using template syntax (e.g., {{.id}}, {{.version}})
+  apply             Generate manifest files for server/webapp
+  check             Validate plugin manifest
+
+Options:
+  --help, -h        Show this help message
+
+Examples:
+  pluginctl manifest get '{{.id}}'           # Get plugin ID
+  pluginctl manifest get '{{.version}}'      # Get plugin version
+  pluginctl manifest apply                   # Generate server/webapp manifest files
+  pluginctl manifest check                   # Validate manifest`
+
+	// Check for help flag
+	if CheckForHelpFlag(args, helpText) {
+		return nil
+	}
+
 	if len(args) == 0 {
-		return fmt.Errorf("manifest command requires a subcommand: get {{.field_name}}, apply, check")
+		return ShowErrorWithHelp("manifest command requires a subcommand", helpText)
 	}
 
 	// Convert to absolute path
@@ -111,7 +135,7 @@ func RunManifestCommand(args []string, pluginPath string) error {
 	switch subcommand {
 	case "get":
 		if len(args) < 2 {
-			return fmt.Errorf("get subcommand requires a template expression (e.g., {{.id}}, {{.version}})")
+			return ShowErrorWithHelp("get subcommand requires a template expression", helpText)
 		}
 		templateStr := args[1]
 
@@ -139,8 +163,7 @@ func RunManifestCommand(args []string, pluginPath string) error {
 		}
 		Logger.Info("Plugin manifest is valid")
 	default:
-		return fmt.Errorf("unknown subcommand: %s. Available subcommands: get {{.field_name}}, apply, check",
-			subcommand)
+		return ShowErrorWithHelp(fmt.Sprintf("unknown subcommand: %s", subcommand), helpText)
 	}
 
 	return nil

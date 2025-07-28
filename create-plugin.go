@@ -277,39 +277,73 @@ func promptForModuleName(pluginName string) (string, error) {
 	return result.input, nil
 }
 
-func parseCreatePluginFlags(args []string) (pluginName, moduleName string, err error) {
-	// Parse flags similar to how logs command handles --watch
+func parseCreatePluginFlags(args []string, helpText string) (pluginName, moduleName string, err error) {
+	pluginName, moduleName, err = parseFlags(args, helpText)
+	if err != nil {
+		return "", "", err
+	}
+
+	pluginName, err = validatePluginName(pluginName, helpText)
+	if err != nil {
+		return "", "", err
+	}
+
+	moduleName, err = validateModuleNameWithHelp(moduleName, helpText)
+	if err != nil {
+		return "", "", err
+	}
+
+	return pluginName, moduleName, nil
+}
+
+func parseFlags(args []string, helpText string) (pluginName, moduleName string, err error) {
 	for i, arg := range args {
 		switch arg {
 		case "--name":
 			if i+1 >= len(args) {
-				return "", "", fmt.Errorf("--name flag requires a value")
+				return "", "", ShowErrorWithHelp("--name flag requires a value", helpText)
 			}
 			pluginName = args[i+1]
 		case "--module":
 			if i+1 >= len(args) {
-				return "", "", fmt.Errorf("--module flag requires a value")
+				return "", "", ShowErrorWithHelp("--module flag requires a value", helpText)
 			}
 			moduleName = args[i+1]
-		}
-	}
-
-	// Validate and process plugin name if provided
-	if pluginName != "" {
-		pluginName, err = validateAndProcessPluginName(pluginName)
-		if err != nil {
-			return "", "", err
-		}
-	}
-
-	// Validate module name if provided
-	if moduleName != "" {
-		if validationErr := validateModuleName(moduleName); validationErr != "" {
-			return "", "", fmt.Errorf("invalid module name: %s", validationErr)
+		case HelpFlagLong, HelpFlagShort:
+			// Skip help flags as they're handled earlier
+		default:
+			if strings.HasPrefix(arg, "--") {
+				return "", "", ShowErrorWithHelp(fmt.Sprintf("unknown flag: %s", arg), helpText)
+			}
 		}
 	}
 
 	return pluginName, moduleName, nil
+}
+
+func validatePluginName(pluginName, helpText string) (string, error) {
+	if pluginName == "" {
+		return "", nil
+	}
+
+	validated, err := validateAndProcessPluginName(pluginName)
+	if err != nil {
+		return "", ShowErrorWithHelp(err.Error(), helpText)
+	}
+
+	return validated, nil
+}
+
+func validateModuleNameWithHelp(moduleName, helpText string) (string, error) {
+	if moduleName == "" {
+		return "", nil
+	}
+
+	if validationErr := validateModuleName(moduleName); validationErr != "" {
+		return "", ShowErrorWithHelp(fmt.Sprintf("invalid module name: %s", validationErr), helpText)
+	}
+
+	return moduleName, nil
 }
 
 // validateAndProcessPluginName checks if the plugin name has the correct prefix and adds it if necessary.
@@ -337,13 +371,39 @@ func validateAndProcessPluginName(name string) (string, error) {
 }
 
 func RunCreatePluginCommand(args []string, pluginPath string) error {
+	helpText := `Create a new plugin from template
+
+Usage:
+  pluginctl create-plugin [options]
+
+Options:
+  --name PLUGIN_NAME    Plugin name (will be prefixed with 'mattermost-plugin-')
+  --module MODULE_NAME  Go module name (e.g., github.com/user/mattermost-plugin-example)
+  --help, -h           Show this help message
+
+Description:
+  Creates a new Mattermost plugin from the starter template. If no options are
+  provided, the command will run in interactive mode prompting for values.
+  The plugin name will automatically be prefixed with 'mattermost-plugin-' if
+  not already present.
+
+Examples:
+  pluginctl create-plugin                              # Interactive mode
+  pluginctl create-plugin --name example --module github.com/user/mattermost-plugin-example
+  pluginctl --plugin-path /path/to/parent create-plugin # Create in specific directory`
+
+	// Check for help flag
+	if CheckForHelpFlag(args, helpText) {
+		return nil
+	}
+
 	// Parse flags
 	var pluginName, moduleName string
 	var err error
 
-	pluginName, moduleName, err = parseCreatePluginFlags(args)
+	pluginName, moduleName, err = parseCreatePluginFlags(args, helpText)
 	if err != nil {
-		return fmt.Errorf("failed to parse flags: %w", err)
+		return err
 	}
 
 	Logger.Info("Starting plugin creation process")

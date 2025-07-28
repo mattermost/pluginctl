@@ -10,15 +10,61 @@ import (
 )
 
 func RunDeployCommand(args []string, pluginPath string) error {
+	helpText := getDeployHelpText()
+
+	// Check for help flag
+	if CheckForHelpFlag(args, helpText) {
+		return nil
+	}
+
+	bundlePath, err := parseDeployFlags(args, helpText)
+	if err != nil {
+		return err
+	}
+
+	bundlePath, err = resolveBundlePath(bundlePath, pluginPath)
+	if err != nil {
+		return err
+	}
+
+	pluginID, err := getPluginIDFromManifest(pluginPath)
+	if err != nil {
+		return err
+	}
+
+	return deployPluginBundle(pluginID, bundlePath)
+}
+
+func getDeployHelpText() string {
+	return `Upload and enable plugin bundle
+
+Usage:
+  pluginctl deploy [options]
+
+Options:
+  --bundle-path PATH    Path to plugin bundle file (.tar.gz)
+  --help, -h           Show this help message
+
+Description:
+  Uploads a plugin bundle to the Mattermost server and enables it. If no
+  bundle path is specified, it will auto-discover the bundle from the dist/
+  directory based on the plugin manifest.
+
+Examples:
+  pluginctl deploy                            # Deploy bundle from ./dist/
+  pluginctl deploy --bundle-path ./bundle.tar.gz # Deploy specific bundle file
+  pluginctl --plugin-path /path/to/plugin deploy # Deploy plugin at specific path`
+}
+
+func parseDeployFlags(args []string, helpText string) (string, error) {
 	var bundlePath string
 
-	// Parse flags
 	i := 0
 	for i < len(args) {
 		switch args[i] {
 		case "--bundle-path":
 			if i+1 >= len(args) {
-				return fmt.Errorf("--bundle-path flag requires a value")
+				return "", ShowErrorWithHelp("--bundle-path flag requires a value", helpText)
 			}
 			bundlePath = args[i+1]
 			i += 2
@@ -27,37 +73,50 @@ func RunDeployCommand(args []string, pluginPath string) error {
 		}
 	}
 
-	// If no bundle path provided, auto-discover from dist folder
-	if bundlePath == "" {
-		manifest, err := LoadPluginManifestFromPath(pluginPath)
-		if err != nil {
-			return fmt.Errorf("failed to load plugin manifest: %w", err)
-		}
+	return bundlePath, nil
+}
 
-		expectedBundleName := fmt.Sprintf("%s-%s.tar.gz", manifest.Id, manifest.Version)
-		bundlePath = filepath.Join(pluginPath, "dist", expectedBundleName)
-
+func resolveBundlePath(bundlePath, pluginPath string) (string, error) {
+	// If bundle path provided, validate it exists
+	if bundlePath != "" {
 		if _, err := os.Stat(bundlePath); os.IsNotExist(err) {
-			return fmt.Errorf("bundle not found at %s - run 'make bundle' to build the plugin first", bundlePath)
+			return "", fmt.Errorf("bundle file not found: %s", bundlePath)
 		}
+
+		return bundlePath, nil
 	}
 
-	// Validate bundle file exists
-	if _, err := os.Stat(bundlePath); os.IsNotExist(err) {
-		return fmt.Errorf("bundle file not found: %s", bundlePath)
-	}
-
-	// Load manifest to get plugin ID
+	// Auto-discover from dist folder
 	manifest, err := LoadPluginManifestFromPath(pluginPath)
 	if err != nil {
-		return fmt.Errorf("failed to load plugin manifest: %w", err)
+		return "", fmt.Errorf("failed to load plugin manifest: %w", err)
+	}
+
+	expectedBundleName := fmt.Sprintf("%s-%s.tar.gz", manifest.Id, manifest.Version)
+	bundlePath = filepath.Join(pluginPath, "dist", expectedBundleName)
+
+	if _, err := os.Stat(bundlePath); os.IsNotExist(err) {
+		return "", fmt.Errorf("bundle not found at %s - run 'make bundle' to build the plugin first", bundlePath)
+	}
+
+	return bundlePath, nil
+}
+
+func getPluginIDFromManifest(pluginPath string) (string, error) {
+	manifest, err := LoadPluginManifestFromPath(pluginPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to load plugin manifest: %w", err)
 	}
 
 	pluginID := manifest.Id
 	if pluginID == "" {
-		return fmt.Errorf("plugin ID not found in manifest")
+		return "", fmt.Errorf("plugin ID not found in manifest")
 	}
 
+	return pluginID, nil
+}
+
+func deployPluginBundle(pluginID, bundlePath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
 	defer cancel()
 

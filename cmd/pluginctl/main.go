@@ -19,9 +19,18 @@ func main() {
 	pluginctl.InitLogger()
 
 	var pluginPath string
+	var showHelp bool
 
 	flag.StringVar(&pluginPath, "plugin-path", "", "Path to plugin directory (overrides PLUGINCTL_PLUGIN_PATH)")
+	flag.BoolVar(&showHelp, "help", false, "Show help information")
 	flag.Parse()
+
+	// Show help if requested
+	if showHelp {
+		showUsage()
+
+		return
+	}
 
 	args := flag.Args()
 	if len(args) == 0 {
@@ -60,10 +69,6 @@ func runCommand(command string, args []string, pluginPath string) error {
 		return runManifestCommand(args, pluginPath)
 	case "logs":
 		return runLogsCommand(args, pluginPath)
-	case "help":
-		showUsage()
-
-		return nil
 	case "version":
 		return runVersionCommand(args)
 	case "create-plugin":
@@ -123,40 +128,19 @@ Usage:
 
 Global Options:
   --plugin-path PATH   Path to plugin directory (overrides PLUGINCTL_PLUGIN_PATH)
+  --help               Show this help message
 
 Commands:
   info           Display plugin information
-  enable         Enable plugin from current directory in Mattermost server
-  disable        Disable plugin from current directory in Mattermost server
-  reset          Reset plugin from current directory (disable then enable)
-  deploy         Upload and enable plugin bundle to Mattermost server
+  enable         Enable plugin in Mattermost server
+  disable        Disable plugin in Mattermost server
+  reset          Reset plugin (disable then enable)
+  deploy         Upload and enable plugin bundle
   updateassets   Update plugin files from embedded assets
-  manifest       Get plugin manifest information using templates (get {{.field}}, apply, check)
-  logs           View plugin logs (use --watch to follow logs in real-time)
-  create-plugin  Create a new plugin from the starter template (supports --name and --module flags)
-  help           Show this help message
+  manifest       Manage plugin manifest files
+  logs           View plugin logs
+  create-plugin  Create a new plugin from template
   version        Show version information
-
-Examples:
-  pluginctl info                              # Show info for plugin in current directory
-  pluginctl --plugin-path /path/to/plugin info # Show info for plugin at specific path
-  pluginctl enable                           # Enable plugin from current directory
-  pluginctl disable                          # Disable plugin from current directory
-  pluginctl reset                            # Reset plugin from current directory (disable then enable)
-  pluginctl deploy                           # Upload and enable plugin bundle from ./dist/
-  pluginctl deploy --bundle-path ./bundle.tar.gz # Deploy specific bundle file
-  pluginctl updateassets                     # Update plugin files from embedded assets
-  pluginctl manifest get '{{.id}}'           # Get any manifest field using templates
-  pluginctl manifest apply                   # Generate manifest files for server/webapp
-  pluginctl manifest check                   # Validate plugin manifest
-  pluginctl logs                             # View recent plugin logs
-  pluginctl logs --watch                     # Watch plugin logs in real-time
-  pluginctl create-plugin                    # Create a new plugin from the starter template (interactive)
-  pluginctl create-plugin --name example \
-                      --module github.com/user/mattermost-plugin-example # Create plugin non-interactively
-  export PLUGINCTL_PLUGIN_PATH=/path/to/plugin
-  pluginctl info                              # Show info using environment variable
-  pluginctl version                           # Show version information
 
 Environment Variables:
   PLUGINCTL_PLUGIN_PATH        Default plugin directory path
@@ -165,6 +149,8 @@ Environment Variables:
   MM_ADMIN_TOKEN               Admin token for authentication
   MM_ADMIN_USERNAME            Admin username for authentication
   MM_ADMIN_PASSWORD            Admin password for authentication
+
+Use 'pluginctl <command> --help' for detailed information about a command.
 
 For more information about Mattermost plugin development, visit:
 https://developers.mattermost.com/integrate/plugins/

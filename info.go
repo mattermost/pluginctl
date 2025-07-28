@@ -109,6 +109,27 @@ func InfoCommandWithPath(path string) error {
 
 // RunInfoCommand implements the 'info' command functionality with plugin path.
 func RunInfoCommand(args []string, pluginPath string) error {
+	helpText := `Display plugin information
+
+Usage:
+  pluginctl info [options]
+
+Options:
+  --help, -h    Show this help message
+
+Description:
+  Shows detailed information about the plugin including ID, name, version,
+  supported components (server/webapp), and settings schema status.
+
+Examples:
+  pluginctl info                              # Show info for plugin in current directory
+  pluginctl --plugin-path /path/to/plugin info # Show info for plugin at specific path`
+
+	// Check for help flag
+	if CheckForHelpFlag(args, helpText) {
+		return nil
+	}
+
 	// Convert to absolute path
 	absPath, err := filepath.Abs(pluginPath)
 	if err != nil {

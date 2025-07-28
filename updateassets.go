@@ -25,8 +25,33 @@ const (
 )
 
 func RunUpdateAssetsCommand(args []string, pluginPath string) error {
-	if len(args) > 0 {
-		return fmt.Errorf("updateassets command does not accept arguments")
+	helpText := `Update plugin files from embedded assets
+
+Usage:
+  pluginctl updateassets [options]
+
+Options:
+  --help, -h    Show this help message
+
+Description:
+  Updates plugin development files such as Makefile, .editorconfig, build
+  configurations, and other assets from the embedded templates. This ensures
+  your plugin uses the latest development tooling and configurations.
+
+Examples:
+  pluginctl updateassets                      # Update assets in current directory
+  pluginctl --plugin-path /path/to/plugin updateassets # Update assets at specific path`
+
+	// Check for help flag
+	if CheckForHelpFlag(args, helpText) {
+		return nil
+	}
+
+	// Check for unexpected arguments
+	for _, arg := range args {
+		if arg != "--help" && arg != "-h" {
+			return ShowErrorWithHelp(fmt.Sprintf("unknown argument: %s", arg), helpText)
+		}
 	}
 
 	Logger.Info("Updating assets in plugin directory", "path", pluginPath)

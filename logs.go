@@ -20,6 +20,32 @@ const (
 
 // RunLogsCommand executes the logs command with optional --watch flag.
 func RunLogsCommand(args []string, pluginPath string) error {
+	helpText := `View plugin logs
+
+Usage:
+  pluginctl logs [options]
+
+Options:
+  --watch           Follow logs in real-time
+  --help, -h        Show this help message
+
+Description:
+  Views plugin logs from the Mattermost server. By default, shows recent log
+  entries. Use --watch to follow logs in real-time.
+
+  Note: JSON output for file logs must be enabled in Mattermost configuration
+  (LogSettings.FileJson) for this command to work.
+
+Examples:
+  pluginctl logs                              # View recent plugin logs
+  pluginctl logs --watch                      # Watch plugin logs in real-time
+  pluginctl --plugin-path /path/to/plugin logs # View logs for plugin at specific path`
+
+	// Check for help flag
+	if CheckForHelpFlag(args, helpText) {
+		return nil
+	}
+
 	// Check for --watch flag
 	watch := false
 	if len(args) > 0 && args[0] == "--watch" {

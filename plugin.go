@@ -114,3 +114,30 @@ func ParsePluginCtlConfig(manifest *model.Manifest) (*PluginCtlConfig, error) {
 
 	return config, nil
 }
+
+const (
+	HelpFlagLong  = "--help"
+	HelpFlagShort = "-h"
+)
+
+// CheckForHelpFlag checks if --help is in the arguments and shows help if found.
+// Returns true if help was shown, false otherwise.
+func CheckForHelpFlag(args []string, helpText string) bool {
+	for _, arg := range args {
+		if arg == HelpFlagLong || arg == HelpFlagShort {
+			Logger.Info(helpText)
+
+			return true
+		}
+	}
+
+	return false
+}
+
+// ShowErrorWithHelp displays an error message followed by command help.
+func ShowErrorWithHelp(errorMsg, helpText string) error {
+	Logger.Error(errorMsg)
+	Logger.Info(helpText)
+
+	return fmt.Errorf("%s", errorMsg)
+}
