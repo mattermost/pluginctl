@@ -13,7 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-//go:embed assets/*
+//go:embed assets/.editorconfig assets/.gitattributes assets/.nvmrc assets/Makefile assets/*.yml assets/build/*.mk assets/.github/**/*.yml assets/webapp/.npmrc assets/webapp/*.config.js
 var assetsFS embed.FS
 
 const (

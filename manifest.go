@@ -27,6 +27,8 @@ func RunManifestCommand(args []string, pluginPath string) error {
 	switch subcommand {
 	case "id":
 		fmt.Println(manifest.Id)
+	case "name":
+		fmt.Println(manifest.Name)
 	case "version":
 		fmt.Println(manifest.Version)
 	case "has_server":

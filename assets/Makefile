@@ -26,13 +26,6 @@ default: all
 # Verify environment, and define PLUGIN_ID, PLUGIN_VERSION, HAS_SERVER and HAS_WEBAPP as needed.
 include build/setup.mk
 
-BUNDLE_NAME ?= $(PLUGIN_ID)-$(PLUGIN_VERSION).tar.gz
-
-# Include custom makefile, if present
-ifneq ($(wildcard build/custom.mk),)
-	include build/custom.mk
-endif
-
 ifneq ($(MM_DEBUG),)
 	GO_BUILD_GCFLAGS = -gcflags "all=-N -l"
 else

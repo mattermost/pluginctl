@@ -42,3 +42,5 @@ ifeq ($(NPM),)
     $(error "npm is not available: see https://www.npmjs.com/get-npm")
 endif
 endif
+
+BUNDLE_NAME ?= $(PLUGIN_ID)-$(PLUGIN_VERSION).tar.gz

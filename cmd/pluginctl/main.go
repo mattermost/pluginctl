@@ -66,6 +66,8 @@ func runCommand(command string, args []string, pluginPath string) error {
 		return nil
 	case "version":
 		return runVersionCommand(args)
+	case "create-plugin":
+		return runCreatePluginCommand(args, pluginPath)
 	default:
 		return fmt.Errorf("unknown command: %s", command)
 	}
@@ -109,6 +111,10 @@ func runDeployCommand(args []string, pluginPath string) error {
 	return pluginctl.RunDeployCommand(args, pluginPath)
 }
 
+func runCreatePluginCommand(args []string, pluginPath string) error {
+	return pluginctl.RunCreatePluginCommand(args, pluginPath)
+}
+
 func showUsage() {
 	usageText := `pluginctl - Mattermost Plugin Development CLI
 
@@ -127,6 +133,7 @@ Commands:
   updateassets   Update plugin files from embedded assets
   manifest       Get plugin manifest information (id, version, has_server, has_webapp, check)
   logs           View plugin logs (use --watch to follow logs in real-time)
+  create-plugin  Create a new plugin from the starter template
   help           Show this help message
   version        Show version information
 
@@ -146,6 +153,7 @@ Examples:
   pluginctl manifest check                   # Validate plugin manifest
   pluginctl logs                             # View recent plugin logs
   pluginctl logs --watch                     # Watch plugin logs in real-time
+  pluginctl create-plugin                    # Create a new plugin from the starter template
   export PLUGINCTL_PLUGIN_PATH=/path/to/plugin
   pluginctl info                              # Show info using environment variable
   pluginctl version                           # Show version information

@@ -4,7 +4,7 @@
 
 # Used for semver bumping
 PROTECTED_BRANCH := master
-APP_NAME    := $(shell basename -s .git `git config --get remote.origin.url`)
+APP_NAME    := $(shell pluginctl manifest id)
 CURRENT_VERSION := $(shell git describe --abbrev=0 --tags)
 VERSION_PARTS := $(subst ., ,$(subst v,,$(subst -rc, ,$(CURRENT_VERSION))))
 MAJOR := $(word 1,$(VERSION_PARTS))
