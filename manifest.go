@@ -1,14 +1,16 @@
 package pluginctl
 
 import (
+	"bytes"
 	"fmt"
 	"path/filepath"
+	"text/template"
 )
 
 // RunManifestCommand implements the 'manifest' command functionality with subcommands.
 func RunManifestCommand(args []string, pluginPath string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("manifest command requires a subcommand: id, version, has_server, has_webapp, check")
+		return fmt.Errorf("manifest command requires a subcommand: get {{.field_name}}, check")
 	}
 
 	// Convert to absolute path
@@ -25,24 +27,24 @@ func RunManifestCommand(args []string, pluginPath string) error {
 
 	subcommand := args[0]
 	switch subcommand {
-	case "id":
-		fmt.Println(manifest.Id)
-	case "name":
-		fmt.Println(manifest.Name)
-	case "version":
-		fmt.Println(manifest.Version)
-	case "has_server":
-		if HasServerCode(manifest) {
-			fmt.Println("true")
-		} else {
-			fmt.Println("false")
+	case "get":
+		if len(args) < 2 {
+			return fmt.Errorf("get subcommand requires a template expression (e.g., {{.id}}, {{.version}})")
 		}
-	case "has_webapp":
-		if HasWebappCode(manifest) {
-			fmt.Println("true")
-		} else {
-			fmt.Println("false")
+		templateStr := args[1]
+
+		// Parse and execute template with manifest as context
+		tmpl, err := template.New("manifest").Parse(templateStr)
+		if err != nil {
+			return fmt.Errorf("failed to parse template: %w", err)
 		}
+
+		var buf bytes.Buffer
+		if err := tmpl.Execute(&buf, manifest); err != nil {
+			return fmt.Errorf("failed to execute template: %w", err)
+		}
+
+		fmt.Print(buf.String())
 	case "check":
 		if err := manifest.IsValid(); err != nil {
 			Logger.Error("Plugin manifest validation failed", "error", err)
@@ -51,8 +53,7 @@ func RunManifestCommand(args []string, pluginPath string) error {
 		}
 		Logger.Info("Plugin manifest is valid")
 	default:
-		return fmt.Errorf("unknown subcommand: %s. Available subcommands: id, version, has_server, has_webapp, check",
-			subcommand)
+		return fmt.Errorf("unknown subcommand: %s. Available subcommands: get {{.field_name}}, check", subcommand)
 	}
 
 	return nil

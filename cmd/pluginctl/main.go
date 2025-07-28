@@ -131,7 +131,7 @@ Commands:
   reset          Reset plugin from current directory (disable then enable)
   deploy         Upload and enable plugin bundle to Mattermost server
   updateassets   Update plugin files from embedded assets
-  manifest       Get plugin manifest information (id, version, has_server, has_webapp, check)
+  manifest       Get plugin manifest information using templates (get {{.field}}, check)
   logs           View plugin logs (use --watch to follow logs in real-time)
   create-plugin  Create a new plugin from the starter template (supports --name and --module flags)
   help           Show this help message
@@ -146,10 +146,7 @@ Examples:
   pluginctl deploy                           # Upload and enable plugin bundle from ./dist/
   pluginctl deploy --bundle-path ./bundle.tar.gz # Deploy specific bundle file
   pluginctl updateassets                     # Update plugin files from embedded assets
-  pluginctl manifest id                      # Get plugin ID
-  pluginctl manifest version                 # Get plugin version
-  pluginctl manifest has_server              # Check if plugin has server code
-  pluginctl manifest has_webapp              # Check if plugin has webapp code
+  pluginctl manifest get '{{.id}}'           # Get any manifest field using templates
   pluginctl manifest check                   # Validate plugin manifest
   pluginctl logs                             # View recent plugin logs
   pluginctl logs --watch                     # Watch plugin logs in real-time
