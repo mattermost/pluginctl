@@ -10,22 +10,22 @@ BUILD_TAG_LATEST = $(shell git describe --tags --match 'v*' --abbrev=0 2>/dev/nu
 BUILD_TAG_CURRENT = $(shell git tag --points-at HEAD)
 
 # Extract the plugin id from the manifest.
-PLUGIN_ID ?= $(shell pluginctl manifest get '{{.id}}')
+PLUGIN_ID ?= $(shell pluginctl manifest get '{{"{{"}}.Id{{"}}"}}')
 ifeq ($(PLUGIN_ID),)
     $(error "Cannot parse id from $(MANIFEST_FILE)")
 endif
 
 # Extract the plugin version from the manifest.
-PLUGIN_VERSION ?= $(shell pluginctl manifest get '{{.version}}')
+PLUGIN_VERSION ?= $(shell pluginctl manifest get '{{"{{"}}.Version{{"}}"}}')
 ifeq ($(PLUGIN_VERSION),)
     $(error "Cannot parse version from $(MANIFEST_FILE)")
 endif
 
 # Determine if a server is defined in the manifest.
-HAS_SERVER ?= $(shell pluginctl manifest get '{{.has_server}}')
+HAS_SERVER ?= $(shell pluginctl manifest get '{{"{{"}}.HasServer{{"}}"}}')
 
 # Determine if a webapp is defined in the manifest.
-HAS_WEBAPP ?= $(shell pluginctl manifest get '{{.has_webapp}}')
+HAS_WEBAPP ?= $(shell pluginctl manifest get '{{"{{"}}.HasWebapp{{"}}"}}')
 
 # Determine if a /public folder is in use
 HAS_PUBLIC ?= $(wildcard public/.)

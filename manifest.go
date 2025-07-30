@@ -105,8 +105,8 @@ Options:
   --help, -h        Show this help message
 
 Examples:
-  pluginctl manifest get '{{.id}}'           # Get plugin ID
-  pluginctl manifest get '{{.version}}'      # Get plugin version
+  pluginctl manifest get '{{.Id}}'           # Get plugin ID
+  pluginctl manifest get '{{.Version}}'      # Get plugin version
   pluginctl manifest apply                   # Generate server/webapp manifest files
   pluginctl manifest check                   # Validate manifest`
 
@@ -146,7 +146,7 @@ Examples:
 		}
 
 		var buf bytes.Buffer
-		if err := tmpl.Execute(&buf, manifest); err != nil {
+		if err := tmpl.Execute(&buf, *manifest); err != nil {
 			return fmt.Errorf("failed to execute template: %w", err)
 		}
 

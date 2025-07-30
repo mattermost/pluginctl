@@ -4,7 +4,7 @@
 
 # Used for semver bumping
 PROTECTED_BRANCH := master
-APP_NAME    := $(shell pluginctl manifest get '{{.id}}')
+APP_NAME    := $(shell pluginctl manifest get '{{"{{"}}.Id{{"}}"}}')
 CURRENT_VERSION := $(shell git describe --abbrev=0 --tags)
 VERSION_PARTS := $(subst ., ,$(subst v,,$(subst -rc, ,$(CURRENT_VERSION))))
 MAJOR := $(word 1,$(VERSION_PARTS))
