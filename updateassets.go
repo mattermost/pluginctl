@@ -87,6 +87,11 @@ Examples:
 
 	Logger.Info("Assets updated successfully!", "files_updated", updatedCount)
 
+	// Store the current pluginctl version in the manifest after successful update
+	if err := UpdatePluginCtlVersion(pluginPath); err != nil {
+		return fmt.Errorf("failed to save version to manifest: %w", err)
+	}
+
 	return nil
 }
 

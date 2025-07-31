@@ -108,7 +108,7 @@ func SavePluginCtlConfig(manifest *model.Manifest, config *PluginCtlConfig) {
 	manifest.Props["pluginctl"] = config
 }
 
-// ValidateAndUpdateVersion checks the plugin version and updates it if necessary.
+// ValidateAndUpdateVersion checks the plugin version for compatibility.
 func ValidateAndUpdateVersion(pluginPath string) error {
 	// Load the manifest
 	manifest, err := LoadPluginManifestFromPath(pluginPath)
@@ -135,15 +135,33 @@ func ValidateAndUpdateVersion(pluginPath string) error {
 			config.Version, currentVersion)
 	}
 
-	// Update version if different
-	if config.Version != currentVersion {
-		config.Version = currentVersion
-		SavePluginCtlConfig(manifest, config)
+	return nil
+}
 
-		// Save the updated manifest
-		if err := WritePluginManifest(manifest, pluginPath); err != nil {
-			return fmt.Errorf("failed to update version in manifest: %w", err)
-		}
+// UpdatePluginCtlVersion updates the pluginctl version in the manifest.
+func UpdatePluginCtlVersion(pluginPath string) error {
+	// Load the manifest
+	manifest, err := LoadPluginManifestFromPath(pluginPath)
+	if err != nil {
+		return fmt.Errorf("failed to load plugin manifest: %w", err)
+	}
+
+	// Get current pluginctl version
+	currentVersion := GetVersion()
+
+	// Parse existing pluginctl config
+	config, err := ParsePluginCtlConfig(manifest)
+	if err != nil {
+		return fmt.Errorf("failed to parse pluginctl config: %w", err)
+	}
+
+	// Update version
+	config.Version = currentVersion
+	SavePluginCtlConfig(manifest, config)
+
+	// Save the updated manifest
+	if err := WritePluginManifest(manifest, pluginPath); err != nil {
+		return fmt.Errorf("failed to update version in manifest: %w", err)
 	}
 
 	return nil
