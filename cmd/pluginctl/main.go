@@ -45,6 +45,14 @@ func main() {
 	// Determine plugin path from flag, environment variable, or current directory
 	effectivePluginPath := pluginctl.GetEffectivePluginPath(pluginPath)
 
+	// Validate and update version before running command (except for version command)
+	if command != pluginctl.VersionCommand {
+		if err := pluginctl.ValidateAndUpdateVersion(effectivePluginPath); err != nil {
+			pluginctl.Logger.Error("Version validation failed", "error", err)
+			os.Exit(ExitError)
+		}
+	}
+
 	if err := runCommand(command, commandArgs, effectivePluginPath); err != nil {
 		pluginctl.Logger.Error("Command failed", "error", err)
 		os.Exit(ExitError)

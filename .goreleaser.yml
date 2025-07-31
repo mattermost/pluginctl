@@ -54,7 +54,7 @@ checksum:
 
 # Snapshot configuration
 snapshot:
-  version_template: "{{ incpatch .Version }}-next"
+  version_template: "{{ incpatch .Version }}-{{ .Commit }}"
 
 # Changelog configuration
 changelog:

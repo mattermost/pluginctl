@@ -606,3 +606,137 @@ func TestIsPathIgnored(t *testing.T) {
 		})
 	}
 }
+
+func TestIsVersionHigher(t *testing.T) {
+	tests := []struct {
+		name           string
+		storedVersion  string
+		currentVersion string
+		expected       bool
+	}{
+		{
+			name:           "same versions",
+			storedVersion:  "v1.0.0",
+			currentVersion: "v1.0.0",
+			expected:       false,
+		},
+		{
+			name:           "stored version higher",
+			storedVersion:  "v1.1.0",
+			currentVersion: "v1.0.0",
+			expected:       true,
+		},
+		{
+			name:           "current version higher",
+			storedVersion:  "v1.0.0",
+			currentVersion: "v1.1.0",
+			expected:       false,
+		},
+		{
+			name:           "current version is dev",
+			storedVersion:  "v1.0.0",
+			currentVersion: "dev",
+			expected:       false,
+		},
+		{
+			name:           "current version is unknown",
+			storedVersion:  "v1.0.0",
+			currentVersion: "unknown",
+			expected:       false,
+		},
+		{
+			name:           "stored version is dev",
+			storedVersion:  "dev",
+			currentVersion: "v1.0.0",
+			expected:       false,
+		},
+		{
+			name:           "stored version is unknown",
+			storedVersion:  "unknown",
+			currentVersion: "v1.0.0",
+			expected:       false,
+		},
+		{
+			name:           "both versions are dev",
+			storedVersion:  "dev",
+			currentVersion: "dev",
+			expected:       false,
+		},
+		{
+			name:           "both versions are unknown",
+			storedVersion:  "unknown",
+			currentVersion: "unknown",
+			expected:       false,
+		},
+		{
+			name:           "alphabetic comparison - stored higher",
+			storedVersion:  "v2.0.0",
+			currentVersion: "v1.9.9",
+			expected:       true,
+		},
+		{
+			name:           "alphabetic comparison - current higher",
+			storedVersion:  "v1.9.9",
+			currentVersion: "v2.0.0",
+			expected:       false,
+		},
+		{
+			name:           "snapshot version vs release - stored snapshot higher",
+			storedVersion:  "v1.1.0-abc123",
+			currentVersion: "v1.0.0",
+			expected:       true,
+		},
+		{
+			name:           "snapshot version vs release - current release higher",
+			storedVersion:  "v1.0.0-abc123",
+			currentVersion: "v1.1.0",
+			expected:       false,
+		},
+		{
+			name:           "both snapshot versions - stored higher",
+			storedVersion:  "v1.1.0-abc123",
+			currentVersion: "v1.0.0-def456",
+			expected:       true,
+		},
+		{
+			name:           "both snapshot versions - current higher",
+			storedVersion:  "v1.0.0-abc123",
+			currentVersion: "v1.1.0-def456",
+			expected:       false,
+		},
+		{
+			name:           "same base version different snapshots",
+			storedVersion:  "v1.0.0-def456",
+			currentVersion: "v1.0.0-abc123",
+			expected:       true,
+		},
+		{
+			name:           "snapshot vs commit hash - stored snapshot higher",
+			storedVersion:  "v0.1.0-abc123",
+			currentVersion: "def456",
+			expected:       true,
+		},
+		{
+			name:           "commit hash vs snapshot - stored hash lower",
+			storedVersion:  "abc123",
+			currentVersion: "v0.1.0-def456",
+			expected:       false,
+		},
+		{
+			name:           "both commit hashes",
+			storedVersion:  "def456",
+			currentVersion: "abc123",
+			expected:       true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isVersionHigher(tt.storedVersion, tt.currentVersion)
+			if result != tt.expected {
+				t.Errorf("isVersionHigher(%q, %q) = %v, want %v",
+					tt.storedVersion, tt.currentVersion, result, tt.expected)
+			}
+		})
+	}
+}
