@@ -47,12 +47,6 @@ const manifest = JSON.parse(` + "`%s`" + `);
 export default manifest;
 `
 
-// PluginCtlConfig represents the configuration for pluginctl stored in the manifest props.
-type PluginCtlConfig struct {
-	Version      string   `json:"version,omitempty"`
-	IgnoreAssets []string `json:"ignore_assets,omitempty"`
-}
-
 // LoadPluginManifest loads and parses the plugin.json file from the current directory.
 func LoadPluginManifest() (*model.Manifest, error) {
 	return LoadPluginManifestFromPath(".")

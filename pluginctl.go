@@ -17,6 +17,12 @@ const (
 	UnknownVersion = "unknown"
 )
 
+// PluginCtlConfig represents the configuration for pluginctl stored in the manifest props.
+type PluginCtlConfig struct {
+	Version      string   `json:"version,omitempty"`
+	IgnoreAssets []string `json:"ignore_assets,omitempty"`
+}
+
 // IsValidPluginDirectory checks if the current directory contains a valid plugin.
 func IsValidPluginDirectory() error {
 	_, err := LoadPluginManifest()

@@ -81,6 +81,8 @@ func runCommand(command string, args []string, pluginPath string) error {
 		return runVersionCommand(args)
 	case "create-plugin":
 		return runCreatePluginCommand(args, pluginPath)
+	case "tools":
+		return runToolsCommand(args, pluginPath)
 	default:
 		return fmt.Errorf("unknown command: %s", command)
 	}
@@ -128,6 +130,10 @@ func runCreatePluginCommand(args []string, pluginPath string) error {
 	return pluginctl.RunCreatePluginCommand(args, pluginPath)
 }
 
+func runToolsCommand(args []string, pluginPath string) error {
+	return pluginctl.RunToolsCommand(args, pluginPath)
+}
+
 func showUsage() {
 	usageText := `pluginctl - Mattermost Plugin Development CLI
 
@@ -148,6 +154,7 @@ Commands:
   manifest       Manage plugin manifest files
   logs           View plugin logs
   create-plugin  Create a new plugin from template
+  tools          Manage development tools (install golangci-lint, gotestsum)
   version        Show version information
 
 Environment Variables:
