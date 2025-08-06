@@ -188,7 +188,15 @@ Examples:
 		}
 
 		var buf bytes.Buffer
-		if err := tmpl.Execute(&buf, *manifest); err != nil {
+		if err := tmpl.Execute(&buf, struct {
+			model.Manifest
+			HasWebapp bool
+			HasServer bool
+		}{
+			Manifest:  *manifest,
+			HasWebapp: HasWebappCode(manifest),
+			HasServer: HasServerCode(manifest),
+		}); err != nil {
 			return fmt.Errorf("failed to execute template: %w", err)
 		}
 
