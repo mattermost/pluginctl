@@ -18,7 +18,8 @@ GORELEASER_VERSION ?= v2.10.2
 # Project variables
 BINARY_NAME = pluginctl
 MAIN_PACKAGE = ./cmd/pluginctl
-DIST_DIR = dist
+DIST_DIR = ./dist
+BIN_DIR = ./build/bin
 
 # Build flags
 LDFLAGS = -ldflags="-s -w -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(BUILD_DATE)"
@@ -39,7 +40,6 @@ clean: ## Clean build artifacts
 	@echo "Cleaning build artifacts..."
 	@rm -rf $(DIST_DIR)
 	@rm -f $(BINARY_NAME)
-	@go clean -cache
 
 # Install dependencies
 .PHONY: deps
@@ -66,19 +66,19 @@ test-coverage: ## Run tests with coverage
 .PHONY: lint
 lint: ## Run linter
 	@echo "Running linter..."
-	@golangci-lint run
+	@$(BIN_DIR)/golangci-lint run
 
 # Fix linting issues
 .PHONY: lint-fix
 lint-fix: ## Fix linting issues
 	@echo "Fixing linting issues..."
-	@golangci-lint run --fix
+	@$(BIN_DIR)/golangci-lint run --fix
 
 # Build for all platforms using goreleaser
 .PHONY: build-all
 build: clean ## Build for all platforms using goreleaser
 	@echo "Building for all platforms using goreleaser..."
-	@goreleaser build --clean
+	@$(BIN_DIR)/goreleaser build --clean
 
 # Install binary
 .PHONY: install
@@ -113,21 +113,36 @@ check-updates: ## Check for dependency updates
 .PHONY: release
 release: ## Create a release
 	@echo "Creating release..."
-	@goreleaser release --clean
+	@$(BIN_DIR)/goreleaser release --clean
 
 # Snapshot release (for testing)
 .PHONY: snapshot
 snapshot: ## Create a snapshot release
 	@echo "Creating snapshot release..."
-	@goreleaser release --snapshot --clean
+	@$(BIN_DIR)/goreleaser release --snapshot --clean
 
 # Development setup
 .PHONY: dev-setup
 dev-setup: ## Set up development environment
 	@echo "Setting up development environment..."
-	@go get -tool github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
-	@go get -tool github.com/goreleaser/goreleaser/v2@$(GORELEASER_VERSION)
-	@echo "Development tools installed"
+	@mkdir -p $(BIN_DIR)
+	@if [ ! -f "$(BIN_DIR)/golangci-lint-$(GOLANGCI_LINT_VERSION)" ]; then \
+		echo "Installing golangci-lint $(GOLANGCI_LINT_VERSION)..."; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BIN_DIR) $(GOLANGCI_LINT_VERSION); \
+		mv $(BIN_DIR)/golangci-lint $(BIN_DIR)/golangci-lint-$(GOLANGCI_LINT_VERSION); \
+	else \
+		echo "golangci-lint $(GOLANGCI_LINT_VERSION) already installed"; \
+	fi
+	@ln -sf golangci-lint-$(GOLANGCI_LINT_VERSION) $(BIN_DIR)/golangci-lint
+	@if [ ! -f "$(BIN_DIR)/goreleaser-$(GORELEASER_VERSION)" ]; then \
+		echo "Installing goreleaser $(GORELEASER_VERSION)..."; \
+		GOBIN=$(PWD)/$(BIN_DIR) go install github.com/goreleaser/goreleaser/v2@$(GORELEASER_VERSION); \
+		mv $(BIN_DIR)/goreleaser $(BIN_DIR)/goreleaser-$(GORELEASER_VERSION); \
+	else \
+		echo "goreleaser $(GORELEASER_VERSION) already installed"; \
+	fi
+	@ln -sf goreleaser-$(GORELEASER_VERSION) $(BIN_DIR)/goreleaser
+	@echo "Development tools installed in $(BIN_DIR)"
 
 # Verify build
 .PHONY: verify
