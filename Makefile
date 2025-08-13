@@ -74,12 +74,6 @@ lint-fix: ## Fix linting issues
 	@echo "Fixing linting issues..."
 	@$(BIN_DIR)/golangci-lint run --fix
 
-# Build for all platforms using goreleaser
-.PHONY: build-all
-build: clean ## Build for all platforms using goreleaser
-	@echo "Building for all platforms using goreleaser..."
-	@$(BIN_DIR)/goreleaser build --clean
-
 # Install binary
 .PHONY: install
 install:
@@ -146,12 +140,12 @@ dev-setup: ## Set up development environment
 
 # Verify build
 .PHONY: verify
-verify: clean lint test build ## Verify build (clean, lint, test, build)
+verify: clean lint test snapshot ## Verify build (clean, lint, test, snapshot)
 	@echo "Build verification complete"
 
 # Quick development build
 .PHONY: dev
-dev: fmt lint snapshot ## Quick development build (fmt, lint, build)
+dev: fmt lint snapshot ## Quick development build (fmt, lint, snapshot)
 
 # Check changes target
 .PHONY: check-changes
