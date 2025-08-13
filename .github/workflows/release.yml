@@ -26,6 +26,9 @@ jobs:
           go-version-file: 'go.mod'
           cache: true
       
+      - name: Install tools
+        run: make dev-setup
+      
       - name: Run make release
         run: make release
         env:
