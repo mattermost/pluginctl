@@ -13,7 +13,6 @@ Migrating into `pluginctl` is easy! Follow these steps to get started:
 5. **Manually remove old asset files**: You can remove the following files:
    - `build/manifest/*`: Tool gets replaced by this one (`pluginctl manifest`).
    - `build/pluginctl/*`: Tool gets replaced by this one.
-   - `build/bin/*`: Not needed anymore since the local tools are being removed.
    - `build/setup.mk`: This has been moved to `build/_setup.mk`.
 
 6. **Done!** Everything should be working now. Check your plugin's functionality to ensure everything is in order or try building/deploying it with `pluginctl` directly. Use `pluginctl help` for more information.
