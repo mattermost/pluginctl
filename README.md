@@ -2,6 +2,8 @@
 
 A command-line interface tool for Mattermost plugin development. `pluginctl` provides utilities to manage, inspect, and work with Mattermost plugins from the command line.
 
+This is a fairly new tool, if you are coming from a plugin that has not used this tool before please [follow this guide](./docs/migration.md).
+
 ## Installation
 
 ### From Source
