@@ -20,7 +20,7 @@ Download the latest binary from the [releases page](https://github.com/mattermos
 
 ```bash
 # Using go install
-go install github.com/mattermost/pluginctl/cmd/pluginctl
+go install github.com/mattermost/pluginctl/cmd/pluginctl@latest
 ```
 
 ## Usage
