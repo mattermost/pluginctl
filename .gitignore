@@ -8,6 +8,7 @@ coverage.html
 
 # Go build cache
 .cache/
+/build/bin
 
 # IDE files
 .vscode/
